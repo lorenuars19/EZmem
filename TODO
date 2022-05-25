@@ -1,0 +1,10 @@
+TODO
+
+- memory usage analysis
+ - reassign malloc and free and realloc etc ...
+ - maybe hook to mmap etc .. ?
+ - custom instrumentation options ? where it leads ?
+
+
+- report in parsable file format
+- report stack trace and memory as in the local vars and arguments of current function ...
