@@ -8,3 +8,7 @@ TODO
 
 - report in parsable file format
 - report stack trace and memory as in the local vars and arguments of current function ...
+
+
+
+trying GCC plugin approach . . .
