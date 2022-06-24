@@ -31,5 +31,5 @@ footer :
 $(TARGET) :
 	@for file in $$(echo "$(SRC)" | xargs);\
 	do \
-		printf "\n/* %s\n*/\n$$(cat $$file)\n" $$file >> $(TARGET); \
+		printf "\n/* === %s === */$$(cat $$file)\n" $$file >> $(TARGET); \
 	done

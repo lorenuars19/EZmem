@@ -11,8 +11,8 @@
 
 // Define some internal constants
 #define MAIN_FOLDER ".ezmem"
-#define MEM_PATH ".ezmem/mem"
-#define SUMMARY_PATH ".ezmem/summary"
-#define LEAKS_PATH ".ezmem/leaks"
-#define IDS_PATH ".ezmem/ids"
-#define README_PATH ".ezmem/README"
+#define MEM_FOLDER ".ezmem/mem"
+#define SUMMARY_FILE ".ezmem/summary.memlog"
+#define LEAKS_FOLDER ".ezmem/leaks"
+#define IDS_FILE ".ezmem/.ids.memid"
+#define README_FILE ".ezmem/README.txt"
