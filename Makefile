@@ -2,9 +2,9 @@ TARGET = ezmem.h
 
 SHELL = /bin/bash
 
-SRCS =\
-	init.h\
-	wrap.h\
+SRCS = \
+	init.h \
+	wrap.h \
 
 SRC = $(addprefix srcs/,$(SRCS))
 
