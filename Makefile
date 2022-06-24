@@ -31,9 +31,5 @@ footer :
 $(TARGET) :
 	@for file in $$(echo "$(SRC)" | xargs);\
 	do \
-		printf "\n\
-// = = = = = = = = = = = = = =\n\
-//  %-24.24s =\n\
-// = = = = = = = = = = = = = =\n\
-$$(cat $$file)\n" $$file >> $(TARGET); \
+		printf "\n/* %s\n*/\n$$(cat $$file)\n" $$file >> $(TARGET); \
 	done

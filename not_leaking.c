@@ -3,6 +3,7 @@
 */
 
 #include "ezmem.h"
+#include <stdlib.h>
 
 char** tab_alloc(int x, int y)
 {
@@ -14,7 +15,8 @@ char** tab_alloc(int x, int y)
 	i = 0;
 	while (i < x)
 	{
-		if (!(tab[i] = (char*)malloc(x * sizeof(char))))
+		tab[i] = (char*)malloc(x * sizeof(char));
+		if (!(tab[i]))
 			return (NULL);
 		i++;
 	}
