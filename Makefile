@@ -4,6 +4,7 @@ SHELL = /bin/bash
 
 SRCS = \
 	init.h \
+	utils.h \
 	constructor.h \
 	destructor.h \
 	wrap.h \
@@ -31,5 +32,7 @@ footer :
 $(TARGET) :
 	@for file in $$(echo "$(SRC)" | xargs);\
 	do \
-		printf "\n/* === %s === */$$(cat $$file)\n" $$file >> $(TARGET); \
+		printf "\n\
+//////////////////////////////////////////////////////////// %s\n\
+$$(cat $$file)\n" $$file >> $(TARGET); \
 	done

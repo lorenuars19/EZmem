@@ -1,4 +1,3 @@
-
 // Include external functions
 #include <stdio.h>
 #include <unistd.h>

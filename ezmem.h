@@ -1,7 +1,7 @@
 #ifndef EZMEM
  #define EZMEM
 
-/* === srcs/init.h === */
+//////////////////////////////////////////////////////////// srcs/init.h
 // Include external functions
 #include <stdio.h>
 #include <unistd.h>
@@ -17,11 +17,10 @@
 #define MEM_FOLDER ".ezmem/mem"
 #define SUMMARY_FILE ".ezmem/summary.memlog"
 #define LEAKS_FOLDER ".ezmem/leaks"
-#define IDS_FILE ".ezmem/ids.memid"
+#define IDS_FILE ".ezmem/.ids.memid"
 #define README_FILE ".ezmem/README.txt"
 
-/* === srcs/constructor.h === */static inline void	constructor() __attribute__((constructor));
-
+//////////////////////////////////////////////////////////// srcs/utils.h
 static inline void create_dir(char* path)
 {
 	int ret = 0;
@@ -50,7 +49,11 @@ static inline int create_file(char* path)
 	{
 		// TODO: error
 	}
+	close(fd);
 }
+
+//////////////////////////////////////////////////////////// srcs/constructor.h
+static inline void	constructor() __attribute__((constructor));
 
 static inline void	constructor()
 {
@@ -66,14 +69,16 @@ static inline void	constructor()
 
 }
 
-/* === srcs/destructor.h === */static inline void	destructor() __attribute__((destructor));
+//////////////////////////////////////////////////////////// srcs/destructor.h
+static inline void	destructor() __attribute__((destructor));
 
 static inline void	destructor()
 {
 	// code here
 }
 
-/* === srcs/wrap.h === */static inline void* _WRAPPED_malloc(size_t size, int line, const char* func, const char* file)
+//////////////////////////////////////////////////////////// srcs/wrap.h
+static inline void* _WRAPPED_malloc(size_t size, int line, const char* func, const char* file)
 {
 	// code here
 	return (NULL);
