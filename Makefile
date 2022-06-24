@@ -4,6 +4,8 @@ SHELL = /bin/bash
 
 SRCS = \
 	init.h \
+	constructor.h \
+	destructor.h \
 	wrap.h \
 
 SRC = $(addprefix srcs/,$(SRCS))
@@ -29,5 +31,9 @@ footer :
 $(TARGET) :
 	@for file in $$(echo "$(SRC)" | xargs);\
 	do \
-		printf "\n//$$file\n$$(cat $$file)\n" >> $(TARGET); \
+		printf "\n\
+// = = = = = = = = = = = = = =\n\
+//  %-24.24s =\n\
+// = = = = = = = = = = = = = =\n\
+$$(cat $$file)\n" $$file >> $(TARGET); \
 	done
