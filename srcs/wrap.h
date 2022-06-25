@@ -29,11 +29,15 @@ static inline void output_data( t_memblk *mem, t_aof aof )
 		puts( "Error : update_id" );
 	}
 
+	// generate filename
+	// >>>> Convert nbr to string /!\
+
 	// Open file
-	// Write DATA to file
-	//	- ID
-	//	- SIZ
-	//	- LOCATION
+//	fd = open()
+		// Write DATA to file
+		//	- ID
+		//	- SIZ
+		//	- LOCATION
 }
 
 
