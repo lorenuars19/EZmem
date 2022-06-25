@@ -6,12 +6,16 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <limits.h>
+#include <dirent.h>
+#include <string.h>
+#include <stdint.h>
+
 // Define useful macros
 #define STR(S) #S
 
 // Define some internal constants
 #define MAIN_FOLDER "./.ezmem"
-#define MEM_FOLDER "./.ezmem/mem"
+#define MEM_FOLDER "./.ezmem/mem/"
 #define SUMMARY_FILE "./.ezmem/summary.memlog"
 #define LEAKS_FOLDER "./.ezmem/leaks"
 #define IDS_FILE "./.ezmem/.ids.memid"
