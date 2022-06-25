@@ -4,7 +4,9 @@ SHELL = /bin/bash
 
 SRCS = \
 	init.h \
-	utils.h \
+	utils_io.h \
+	utils_file.h \
+	utils_nbr.h \
 	constructor.h \
 	destructor.h \
 	wrap.h \
