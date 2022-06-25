@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <limits.h>
 // Define useful macros
 #define STR(S) #S
 
