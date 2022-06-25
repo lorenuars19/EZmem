@@ -32,7 +32,7 @@ footer :
 $(TARGET) :
 	@for file in $$(echo "$(SRC)" | xargs);\
 	do \
-		printf "\n\
-//////////////////////////////////////////////////////////// %s\n\
-$$(cat $$file)\n" $$file >> $(TARGET); \
+	 	echo >> $(TARGET); \
+		echo //////////////////////////////////////////////////////////// $$file >> $(TARGET); \
+		cat $$file >> $(TARGET); \
 	done
