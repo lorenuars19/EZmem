@@ -10,12 +10,12 @@
 #define STR(S) #S
 
 // Define some internal constants
-#define MAIN_FOLDER ".ezmem"
-#define MEM_FOLDER ".ezmem/mem"
-#define SUMMARY_FILE ".ezmem/summary.memlog"
-#define LEAKS_FOLDER ".ezmem/leaks"
-#define IDS_FILE ".ezmem/.ids.memid"
-#define README_FILE ".ezmem/README.txt"
+#define MAIN_FOLDER "./.ezmem"
+#define MEM_FOLDER "./.ezmem/mem"
+#define SUMMARY_FILE "./.ezmem/summary.memlog"
+#define LEAKS_FOLDER "./.ezmem/leaks"
+#define IDS_FILE "./.ezmem/.ids.memid"
+#define README_FILE "./.ezmem/README.txt"
 
 // Define structs
 typedef struct s_location

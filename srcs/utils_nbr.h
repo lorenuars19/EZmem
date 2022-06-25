@@ -1,4 +1,4 @@
-static inline ssize_t put_nbr( int fd, ssize_t num )
+static inline size_t put_nbr( int fd, ssize_t num )
 {
 	ssize_t	ret;
 
@@ -16,7 +16,7 @@ static inline ssize_t put_nbr( int fd, ssize_t num )
 	return ( ret );
 }
 
-static inline ssize_t put_nbr_base( int fd, ssize_t num, ssize_t base, char* b_chars )
+static inline size_t put_nbr_base( int fd, ssize_t num, ssize_t base, char* b_chars )
 {
 	ssize_t	ret;
 

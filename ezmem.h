@@ -14,12 +14,12 @@
 #define STR(S) #S
 
 // Define some internal constants
-#define MAIN_FOLDER ".ezmem"
-#define MEM_FOLDER ".ezmem/mem"
-#define SUMMARY_FILE ".ezmem/summary.memlog"
-#define LEAKS_FOLDER ".ezmem/leaks"
-#define IDS_FILE ".ezmem/.ids.memid"
-#define README_FILE ".ezmem/README.txt"
+#define MAIN_FOLDER "./.ezmem"
+#define MEM_FOLDER "./.ezmem/mem"
+#define SUMMARY_FILE "./.ezmem/summary.memlog"
+#define LEAKS_FOLDER "./.ezmem/leaks"
+#define IDS_FILE "./.ezmem/.ids.memid"
+#define README_FILE "./.ezmem/README.txt"
 
 // Define structs
 typedef struct s_location
@@ -81,7 +81,7 @@ static inline int create_file(char* path, void (*func)(int fd))
 
 	if (stat(path, &st) == -1)
 	{
-		fd = open(path, O_CREAT | O_RDWR, 0700);
+		fd = open(path, O_CREAT | O_RDWR | O_CLOEXEC, 0700);
 	}
 	if (fd < 1)
 	{
@@ -96,7 +96,7 @@ static inline int create_file(char* path, void (*func)(int fd))
 }
 
 //////////////////////////////////////////////////////////// srcs/utils_nbr.h
-static inline ssize_t put_nbr( int fd, ssize_t num )
+static inline size_t put_nbr( int fd, ssize_t num )
 {
 	ssize_t	ret;
 
@@ -114,7 +114,7 @@ static inline ssize_t put_nbr( int fd, ssize_t num )
 	return ( ret );
 }
 
-static inline ssize_t put_nbr_base( int fd, ssize_t num, ssize_t base, char* b_chars )
+static inline size_t put_nbr_base( int fd, ssize_t num, ssize_t base, char* b_chars )
 {
 	ssize_t	ret;
 
@@ -200,7 +200,7 @@ static inline int get_curr_id( size_t* num_ptr )
 	int			fd = -1;
 	int			ret = 0;
 
-	fd = open( IDS_FILE, O_RDONLY );
+	fd = open( IDS_FILE, O_RDONLY | O_CLOEXEC );
 	if (fd < 0)
 		return ( 1 );
 
@@ -221,11 +221,11 @@ static inline int update_id( size_t curr_id )
 	int			fd = -1;
 	int			ret = 0;
 
-	fd = open( IDS_FILE, O_CREAT | O_TRUNC, 0600 );
+	fd = open( IDS_FILE, O_RDWR | O_TRUNC, 0700 );
 	if (fd < 0)
 		return ( 1 );
 
-	put_nbr( fd, curr_id );
+	put_nbr( fd, curr_id + 1 );
 
 	close( fd );
 	return( 0 );
@@ -237,16 +237,15 @@ static inline void	constructor() __attribute__( ( constructor ) );
 static inline void writ_readme( int fd )
 {
 	static char str[] = "\
-		Content of the EZMEM folder : \n\
-			- mem/ :\n\
-				Contains one file for each memory block\n\
-			- leaks/ :\n\
-				Contains one file per memory blocks that has never been freed\n\
-			- summary.memlog :\n\
-				Contains log of memory alloc / frees during execution\n\
-			- .ids.memid :\n\
-				Helper internal file tracking current ID\n\
-		";
+Content of the EZMEM folder :\n\
+	- mem/ :\n\
+		Contains one file for each memory block\n\
+	- leaks/ :\n\
+		Contains one file per memory blocks that has never been freed\n\
+	- summary.memlog :\n\
+		Contains log of memory alloc / frees during execution\n\
+	- .ids.memid :\n\
+		Helper internal file tracking current ID\n";
 
 	put_str( fd, str );
 }
@@ -276,7 +275,7 @@ static inline void	constructor()
 }
 
 //////////////////////////////////////////////////////////// srcs/destructor.h
-static inline void	destructor() __attribute__((destructor));
+static inline void	destructor() __attribute__( ( destructor ) );
 
 static inline void	destructor()
 {
@@ -294,11 +293,23 @@ static inline void output_data( t_memblk *mem, t_aof aof )
 {
 	size_t id = 0;
 
+	printf( " < MEM ptr %p siz %ld | LOC %s:%d in %s() > \n",
+			mem->ptr, mem->siz, mem->loc.file, mem->loc.line, mem->loc.func );
+
 	// ID management
 	//	- GET ID
 	if (get_curr_id( &id ))
 	{
 		// TODO: error
+		puts( "Error : curr_id" );
+	}
+
+	printf( " < id %d > \n", id );
+
+	if (update_id( id ))
+	{
+		//TODO: error
+		puts( "Error : update_id" );
 	}
 	//	- INCREMENT ID
 
@@ -325,7 +336,7 @@ static inline void *_WRAPPED_malloc( size_t size, size_t line, const char *func,
 static inline void	_WRAPPED_free( void *ptr, int line, const char *func, const char *file )
 {
 	// code here
-	t_memblk	mem = ( t_memblk ){ NULL, 0, ( t_location ) { line, func, file } };
+	t_memblk	mem = ( t_memblk ){ ptr, 0, ( t_location ) { line, func, file } };
 
 	output_data( &mem, FREE );
 

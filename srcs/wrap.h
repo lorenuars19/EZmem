@@ -6,15 +6,28 @@ typedef enum e_allo_or_free
 
 static inline void output_data( t_memblk *mem, t_aof aof )
 {
-	size_t id = 0;
+	int		fd = -1;
+	size_t	id = 0;
+
+	printf( " < MEM ptr %p siz %ld | LOC %s:%d in %s() > \n",
+			mem->ptr, mem->siz, mem->loc.file, mem->loc.line, mem->loc.func );
 
 	// ID management
 	//	- GET ID
 	if (get_curr_id( &id ))
 	{
 		// TODO: error
+		puts( "Error : curr_id" );
 	}
+
+	printf( " < id %d > \n", id );
+
 	//	- INCREMENT ID
+	if (update_id( id ))
+	{
+		//TODO: error
+		puts( "Error : update_id" );
+	}
 
 	// Open file
 	// Write DATA to file
@@ -39,7 +52,7 @@ static inline void *_WRAPPED_malloc( size_t size, size_t line, const char *func,
 static inline void	_WRAPPED_free( void *ptr, int line, const char *func, const char *file )
 {
 	// code here
-	t_memblk	mem = ( t_memblk ){ NULL, 0, ( t_location ) { line, func, file } };
+	t_memblk	mem = ( t_memblk ){ ptr, 0, ( t_location ) { line, func, file } };
 
 	output_data( &mem, FREE );
 

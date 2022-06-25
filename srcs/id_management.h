@@ -8,7 +8,7 @@ static inline int get_curr_id( size_t* num_ptr )
 	int			fd = -1;
 	int			ret = 0;
 
-	fd = open( IDS_FILE, O_RDONLY );
+	fd = open( IDS_FILE, O_RDONLY | O_CLOEXEC );
 	if (fd < 0)
 		return ( 1 );
 
@@ -29,11 +29,11 @@ static inline int update_id( size_t curr_id )
 	int			fd = -1;
 	int			ret = 0;
 
-	fd = open( IDS_FILE, O_CREAT | O_TRUNC, 0600 );
+	fd = open( IDS_FILE, O_RDWR | O_TRUNC, 0700 );
 	if (fd < 0)
 		return ( 1 );
 
-	put_nbr( fd, curr_id );
+	put_nbr( fd, curr_id + 1 );
 
 	close( fd );
 	return( 0 );
