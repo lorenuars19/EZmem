@@ -18,7 +18,7 @@ static inline int get_curr_id( size_t* num_ptr )
 
 	input[ret] = '\0'; // NULL terminate input buffer
 
-	number = str_to_nbr( input );
+	number = strtoull( input, NULL, 10 );
 	*num_ptr = number;
 	close( fd );
 	return( 0 );

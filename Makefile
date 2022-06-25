@@ -12,6 +12,7 @@ SRCS = \
 	id_management.h \
 	constructor.h \
 	destructor.h \
+	output_data.h \
 	wrap.h \
 
 SRC = $(addprefix srcs/,$(SRCS))

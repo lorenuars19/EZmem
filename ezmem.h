@@ -136,38 +136,6 @@ static inline size_t put_nbr_base( int fd, ssize_t num, ssize_t base, char* b_ch
 	return ( ret );
 }
 
-static inline int	is_wsp( char c )
-{
-	if (c == '\t' || c == '\v' || c == '\f' || c == '\r' || c == ' ')
-		return ( 1 );
-	return ( 0 );
-}
-
-static inline ssize_t str_to_nbr( char* s )
-{
-	ssize_t	num;
-	int		sign;
-
-	num = 0;
-	sign = 1;
-	while (s && *s && is_wsp( *s ))
-		s++;
-	while (s && *s >= '0' && *s <= '9')
-		num = ( num * 10 ) + ( *s++ - '0' );
-	if (num > LONG_MAX)
-	{
-		if (sign == 1)
-			return ( -1 );
-		else
-			return ( 0 );
-	}
-	if (sign == 1)
-		return ( num );
-	else
-		return ( -num );
-	return ( 0 );
-}
-
 //////////////////////////////////////////////////////////// srcs/id_management.h
 
 #define ID_MAX_LEN 42
@@ -189,7 +157,7 @@ static inline int get_curr_id( size_t* num_ptr )
 
 	input[ret] = '\0'; // NULL terminate input buffer
 
-	number = str_to_nbr( input );
+	number = strtoull( input, NULL, 10 );
 	*num_ptr = number;
 	close( fd );
 	return( 0 );
@@ -261,7 +229,7 @@ static inline void	destructor()
 	// code here
 }
 
-//////////////////////////////////////////////////////////// srcs/wrap.h
+//////////////////////////////////////////////////////////// srcs/output_data.h
 typedef enum e_allo_or_free
 {
 	ALLO,
@@ -277,7 +245,7 @@ static inline int parse_id_siz( t_memblk *mem, size_t *id, char *s )
 	uintptr_t ptr = 0;
 	size_t i = 0;
 
-	if (s && s[0] == '.')
+	if (s && s[0] == '.' || !s)
 	{
 		return ( 0 );
 	}
@@ -303,26 +271,21 @@ static inline int parse_id_siz( t_memblk *mem, size_t *id, char *s )
 #define D printf( " < MEM ptr %p siz %ld | LOC %s:%d in %s() > \n",	\
 	mem->ptr, mem->siz, mem->loc.file, mem->loc.line, mem->loc.func );
 
-static inline void output_data( t_memblk *mem, t_aof aof )
-{
-	int		fd = -1;
-	size_t	id = 0;
 
+static inline int detect_id( t_memblk *mem, t_aof aof, size_t *id )
+{
 	// ID management
 	//	- GET ID
 	if (aof == ALLO)
 	{
-		if (get_curr_id( &id ))
+		if (get_curr_id( id ))
 		{
-			// TODO: error
-			puts( "Error : curr_id" );
+			return ( 1 );
 		}
-		printf( " < id %d > \n", id );
 		//	- INCREMENT ID
-		if (update_id( id ))
+		if (update_id( *id ))
 		{
-			//TODO: error
-			puts( "Error : update_id" );
+			return ( 2 );
 		}
 	}
 	else if (aof == FREE)
@@ -333,25 +296,40 @@ static inline void output_data( t_memblk *mem, t_aof aof )
 		ffd = opendir( MEM_FOLDER );
 		if (ffd == NULL)
 		{
-			//TODO: error
-			puts( "Error: FREE get ID failed to open dir" MEM_FOLDER );
+			// puts( "Error: FREE get ID failed to open dir" MEM_FOLDER );
+			return ( 3 );
 		}
 		ent = ( struct dirent* ) 1;
 		while (ent)
 		{
 			ent = readdir( ffd );
-			if (ent && parse_id_siz( mem, &id, ent->d_name ))
+			if (ent && parse_id_siz( mem, id, ent->d_name ))
 			{
 				break;
 			}
 		}
 		closedir( ffd );
 	}
-	if (mem->siz == 0)
+	return ( 0 );
+}
+
+static inline void output_data( t_memblk *mem, t_aof aof )
+{
+	int		fd = -1;
+	size_t	id = 0;
+	int		ret = 0;
+
+	ret = detect_id( mem, aof, &id );
+	if (ret)
 	{
-		puts( "Error : siz ZERO" );
+		dprintf( 2, "\e[31;1m < EZMEM : Error : detect_id : RET %d > \e[0m\n", ret );
+		exit( ret );
+	}
+	if (mem->siz == 0) // size of ZERO = UNKNOWN = ignore
+	{
 		return;
 	}
+
 	// Generate filename
 	char fname[FNAME_MAXLEN] = { [0 ... ( FNAME_MAXLEN - 1 )] = 0 };
 	snprintf( fname, FNAME_MAXLEN, MEM_FOLDER "I_%08ld__S_%08ld__A_%#llX", id, mem->siz, ( uintptr_t ) mem->ptr );
@@ -368,7 +346,7 @@ static inline void output_data( t_memblk *mem, t_aof aof )
 	if (fd < 0)
 	{
 		//TODO:error
-		printf( "Error: open memblk [%s] file output_data\n", fname );
+		dprintf( 2, "\e[31;1m < EZMEM : Error : open memblk [%s] file in output_data()\n", fname );
 	}
 	if (aof == ALLO)
 	{
@@ -397,9 +375,24 @@ static inline void output_data( t_memblk *mem, t_aof aof )
 		snprintf( loc, LOC_MAXLEN, "FREE : %s:%ld in %s()\n", mem->loc.file, mem->loc.line, mem->loc.func );
 	}
 	put_str( fd, loc );
+
+	close( fd );
+
+	int summ_fd;
+
+	summ_fd = open( SUMMARY_FILE, O_WRONLY | O_APPEND );
+	if (summ_fd < 0)
+	{
+		dprintf( 2, "\e[31;1m < EZMEM : Error : open summary [%s] file in output_data()\n", SUMMARY_FILE );
+	}
+	dprintf( summ_fd, "%s : ID %-16ld - SIZE %-16ld - ADDR %#X | %s", ( aof == ALLO ) ? ( "ALLO" ) : ( "FREE" ), id, mem->siz, mem->ptr, loc );
+
+	close( summ_fd );
+
+
 }
 
-
+//////////////////////////////////////////////////////////// srcs/wrap.h
 static inline void *_WRAPPED_malloc( size_t size, size_t line, const char *func, const char *file )
 {
 	t_memblk	mem = ( t_memblk ){ NULL, size, ( t_location ) { line, func, file } };
