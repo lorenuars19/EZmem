@@ -9,6 +9,7 @@ SRCS = \
 	utils_io.h \
 	utils_file.h \
 	utils_nbr.h \
+	id_management.h \
 	constructor.h \
 	destructor.h \
 	wrap.h \
@@ -40,3 +41,7 @@ $(TARGET) :
 		echo //////////////////////////////////////////////////////////// $$file >> $(TARGET); \
 		cat $$file >> $(TARGET); \
 	done
+
+
+test : all
+	gcc -g3 not_leaking.c && ./a.out

@@ -1,13 +1,50 @@
-static inline void* _WRAPPED_malloc(size_t size, int line, const char* func, const char* file)
+typedef enum e_allo_or_free
 {
-	// code here
-	return (NULL);
+	ALLO,
+	FREE
+}	t_aof;
+
+static inline void output_data( t_memblk *mem, t_aof aof )
+{
+	size_t id = 0;
+
+	// ID management
+	//	- GET ID
+	if (get_curr_id( &id ))
+	{
+		// TODO: error
+	}
+	//	- INCREMENT ID
+
+	// Open file
+	// Write DATA to file
+	//	- ID
+	//	- SIZ
+	//	- LOCATION
 }
 
-static inline void	_WRAPPED_free(void* ptr, int line, const char* func, const char* file)
+
+static inline void *_WRAPPED_malloc( size_t size, size_t line, const char *func, const char *file )
 {
-	// code here
+	t_memblk	mem = ( t_memblk ){ NULL, size, ( t_location ) { line, func, file } };
+	void *ptr = NULL;
+
+	mem.ptr = malloc( size ); // Call real malloc
+
+	output_data( &mem, ALLO );
+
+	return ( mem.ptr );
 }
 
-// # define malloc(x) _WRAPPED_malloc(x, __LINE__, __FUNCTION__, __FILE__)
-// # define free(x) _WRAPPED_free(x, __LINE__, __FUNCTION__, __FILE__)
+static inline void	_WRAPPED_free( void *ptr, int line, const char *func, const char *file )
+{
+	// code here
+	t_memblk	mem = ( t_memblk ){ NULL, 0, ( t_location ) { line, func, file } };
+
+	output_data( &mem, FREE );
+
+	free( ptr );
+}
+
+# define malloc(x) _WRAPPED_malloc(x, __LINE__, __FUNCTION__, __FILE__)
+# define free(x) _WRAPPED_free(x, __LINE__, __FUNCTION__, __FILE__)

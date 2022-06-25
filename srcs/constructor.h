@@ -1,8 +1,8 @@
 static inline void	constructor() __attribute__( ( constructor ) );
 
-static inline void writ_readme( int fd );
+static inline void writ_readme( int fd )
 {
-	static char str [] = "\
+	static char str[] = "\
 		Content of the EZMEM folder : \n\
 			- mem/ :\n\
 				Contains one file for each memory block\n\
@@ -14,19 +14,29 @@ static inline void writ_readme( int fd );
 				Helper internal file tracking current ID\n\
 		";
 
-	put_str( str )
+	put_str( fd, str );
 }
+
+static inline void writ_init_id( int fd )
+{
+	put_str( fd, "0" );
+}
+
+static inline int get_memid( long long* num_ptr );
 
 static inline void	constructor()
 {
+	struct stat st = { 0 };
+	if (stat( MAIN_FOLDER, &st ) != -1)
+	{
+		system( "rm -rf ./" MAIN_FOLDER );
+	}
 
 	create_dir( MAIN_FOLDER );
 	create_dir( MEM_FOLDER );
 	create_dir( LEAKS_FOLDER );
 
 	create_file( SUMMARY_FILE, NULL );
-	create_file( IDS_FILE, NULL );
+	create_file( IDS_FILE, writ_init_id );
 	create_file( README_FILE, writ_readme );
-
-
 }

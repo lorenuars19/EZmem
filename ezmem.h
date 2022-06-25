@@ -21,6 +21,21 @@
 #define IDS_FILE ".ezmem/.ids.memid"
 #define README_FILE ".ezmem/README.txt"
 
+// Define structs
+typedef struct s_location
+{
+	size_t		line;
+	const char	*func;
+	const char	*file;
+}	t_location;
+
+typedef struct s_mem_blok
+{
+	void	*ptr;
+	size_t	siz;
+	t_location	loc;
+}	t_memblk;
+
 //////////////////////////////////////////////////////////// srcs/utils_io.h
 static inline size_t str_len( const char* str )
 {
@@ -133,10 +148,6 @@ static inline ssize_t str_to_nbr( char* s )
 	sign = 1;
 	while (s && *s && is_wsp( *s ))
 		s++;
-	if (s && *s == '-')
-		sign = -1;
-	while (s && ( *s == '-' || *s == '+' ))
-		s++;
 	while (s && *s >= '0' && *s <= '9')
 		num = ( num * 10 ) + ( *s++ - '0' );
 	if (num > LONG_MAX)
@@ -162,10 +173,6 @@ static inline ssize_t str_to_nbr_base( char* s, int base )
 	sign = 1;
 	while (s && *s && is_wsp( *s ))
 		s++;
-	if (s && *s == '-')
-		sign = -1;
-	while (s && ( *s == '-' || *s == '+' ))
-		s++;
 	while (s && *s >= '0' && *s <= '9')
 		num = ( num * base ) + ( *s++ - '0' );
 	if (num > LONG_MAX)
@@ -182,27 +189,14 @@ static inline ssize_t str_to_nbr_base( char* s, int base )
 	return ( 0 );
 }
 
+//////////////////////////////////////////////////////////// srcs/id_management.h
+
 #define ID_MAX_LEN 42
 
-static inline int parse_id( char* s )
+static inline int get_curr_id( size_t* num_ptr )
 {
-	size_t i = 0;
-
-	size_t siz;
-
-	siz = sizeof( s ) / sizeof( *s );
-
-	printf( "SIZ siz : %d sizeof s :%d sizof *s: %d\n", siz, sizeof( s ) / sizeof( *s ) );
-
-
-
-	return ( 0 );
-}
-
-static inline int get_id( long long* num_ptr )
-{
-	long long	number = 0;
-	char		input[ID_MAX_LEN] = { [0 ... ID_MAX_LEN - 1] = 0 };
+	size_t		number = 0;
+	char		input[ID_MAX_LEN] = { [0 ... ( ID_MAX_LEN - 1 )] = 0 }; // Use designated initializers to zero the array
 	int			fd = -1;
 	int			ret = 0;
 
@@ -218,15 +212,31 @@ static inline int get_id( long long* num_ptr )
 
 	number = str_to_nbr( input );
 	*num_ptr = number;
+	close( fd );
+	return( 0 );
+}
+
+static inline int update_id( size_t curr_id )
+{
+	int			fd = -1;
+	int			ret = 0;
+
+	fd = open( IDS_FILE, O_CREAT | O_TRUNC, 0600 );
+	if (fd < 0)
+		return ( 1 );
+
+	put_nbr( fd, curr_id );
+
+	close( fd );
 	return( 0 );
 }
 
 //////////////////////////////////////////////////////////// srcs/constructor.h
 static inline void	constructor() __attribute__( ( constructor ) );
 
-static inline void writ_readme( int fd );
+static inline void writ_readme( int fd )
 {
-	static char str [] = "\
+	static char str[] = "\
 		Content of the EZMEM folder : \n\
 			- mem/ :\n\
 				Contains one file for each memory block\n\
@@ -238,21 +248,31 @@ static inline void writ_readme( int fd );
 				Helper internal file tracking current ID\n\
 		";
 
-	put_str( str )
+	put_str( fd, str );
 }
+
+static inline void writ_init_id( int fd )
+{
+	put_str( fd, "0" );
+}
+
+static inline int get_memid( long long* num_ptr );
 
 static inline void	constructor()
 {
+	struct stat st = { 0 };
+	if (stat( MAIN_FOLDER, &st ) != -1)
+	{
+		system( "rm -rf ./" MAIN_FOLDER );
+	}
 
 	create_dir( MAIN_FOLDER );
 	create_dir( MEM_FOLDER );
 	create_dir( LEAKS_FOLDER );
 
 	create_file( SUMMARY_FILE, NULL );
-	create_file( IDS_FILE, NULL );
+	create_file( IDS_FILE, writ_init_id );
 	create_file( README_FILE, writ_readme );
-
-
 }
 
 //////////////////////////////////////////////////////////// srcs/destructor.h
@@ -264,18 +284,55 @@ static inline void	destructor()
 }
 
 //////////////////////////////////////////////////////////// srcs/wrap.h
-static inline void* _WRAPPED_malloc(size_t size, int line, const char* func, const char* file)
+typedef enum e_allo_or_free
 {
-	// code here
-	return (NULL);
+	ALLO,
+	FREE
+}	t_aof;
+
+static inline void output_data( t_memblk *mem, t_aof aof )
+{
+	size_t id = 0;
+
+	// ID management
+	//	- GET ID
+	if (get_curr_id( &id ))
+	{
+		// TODO: error
+	}
+	//	- INCREMENT ID
+
+	// Open file
+	// Write DATA to file
+	//	- ID
+	//	- SIZ
+	//	- LOCATION
 }
 
-static inline void	_WRAPPED_free(void* ptr, int line, const char* func, const char* file)
+
+static inline void *_WRAPPED_malloc( size_t size, size_t line, const char *func, const char *file )
 {
-	// code here
+	t_memblk	mem = ( t_memblk ){ NULL, size, ( t_location ) { line, func, file } };
+	void *ptr = NULL;
+
+	mem.ptr = malloc( size ); // Call real malloc
+
+	output_data( &mem, ALLO );
+
+	return ( mem.ptr );
 }
 
-// # define malloc(x) _WRAPPED_malloc(x, __LINE__, __FUNCTION__, __FILE__)
-// # define free(x) _WRAPPED_free(x, __LINE__, __FUNCTION__, __FILE__)
+static inline void	_WRAPPED_free( void *ptr, int line, const char *func, const char *file )
+{
+	// code here
+	t_memblk	mem = ( t_memblk ){ NULL, 0, ( t_location ) { line, func, file } };
+
+	output_data( &mem, FREE );
+
+	free( ptr );
+}
+
+# define malloc(x) _WRAPPED_malloc(x, __LINE__, __FUNCTION__, __FILE__)
+# define free(x) _WRAPPED_free(x, __LINE__, __FUNCTION__, __FILE__)
 
 #endif //EZMEM

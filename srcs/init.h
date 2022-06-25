@@ -16,3 +16,18 @@
 #define LEAKS_FOLDER ".ezmem/leaks"
 #define IDS_FILE ".ezmem/.ids.memid"
 #define README_FILE ".ezmem/README.txt"
+
+// Define structs
+typedef struct s_location
+{
+	size_t		line;
+	const char	*func;
+	const char	*file;
+}	t_location;
+
+typedef struct s_mem_blok
+{
+	void	*ptr;
+	size_t	siz;
+	t_location	loc;
+}	t_memblk;
