@@ -13,10 +13,11 @@
 // Define useful macros
 #define STR(S) #S
 #define ERR(...) \
-dprintf(2, "\e[31;1m < EZMEM %s:%d in %s() : Error : ", __FILE__, __LINE__, __FUNCTION__); \
+dprintf(2, "\e[31m < EZMEM %s:%d in %s() : Error : ", __FILE__, __LINE__, __FUNCTION__); \
 dprintf(2, __VA_ARGS__ ); dprintf(2, " > \e[0m\n" );
 
-#define FAT_ERR(...) ERR(__VA_ARGS); exit(1);
+#define FAT_ERR(...) ERR(__VA_ARGS__); \
+dprintf(2, "\e[31;1m < EZMEM FATAL ERROR : EXIT >\e[0m\n" ); exit(1);
 
 
 // Define some internal constants

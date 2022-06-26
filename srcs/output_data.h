@@ -41,11 +41,13 @@ static inline int detect_id( t_memblk *mem, t_aof aof, size_t *id )
 	{
 		if (get_curr_id( id ))
 		{
+			ERR( "get_curr_id: *id %p", id );
 			return ( 1 );
 		}
 		//	- INCREMENT ID
 		if (update_id( *id ))
 		{
+			ERR( "update_id: *id %p", id );
 			return ( 2 );
 		}
 	}
@@ -57,6 +59,7 @@ static inline int detect_id( t_memblk *mem, t_aof aof, size_t *id )
 		ffd = opendir( MEM_FOLDER );
 		if (ffd == NULL)
 		{
+			ERR( "opendir: cannot open folder %s | ffd : %p", MEM_FOLDER, ffd );
 			return ( 3 );
 		}
 		ent = ( struct dirent* ) 1;
@@ -82,8 +85,7 @@ static inline void output_data( t_memblk *mem, t_aof aof )
 	ret = detect_id( mem, aof, &id );
 	if (ret)
 	{
-		dprintf( 2, "\e[31;1m < EZMEM : Error : detect_id : RET %d > \e[0m\n", ret );
-		exit( ret );
+		ERR( "detect_id : RET %d", ret )
 	}
 	if (mem->siz == 0) // size of ZERO = UNKNOWN = ignore
 	{
@@ -105,7 +107,6 @@ static inline void output_data( t_memblk *mem, t_aof aof )
 	}
 	if (fd < 0)
 	{
-		//TODO:error
 		ERR( "open memblk [%s] file in output_data()", fname );
 	}
 	if (aof == ALLO)
@@ -155,8 +156,5 @@ static inline void output_data( t_memblk *mem, t_aof aof )
 		ERR( "open summary [%s] file in output_data()", LOG_FILE );
 	}
 	dprintf( summ_fd, "%s : ID %-16ld - SIZE %-16ld - ADDR %#X | %s", ( aof == ALLO ) ? ( "ALLO" ) : ( "FREE" ), id, mem->siz, mem->ptr, loc );
-
 	close( summ_fd );
-
-
 }
