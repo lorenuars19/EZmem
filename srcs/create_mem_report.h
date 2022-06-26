@@ -2,7 +2,7 @@ static inline void quit( int sig )
 {
 	dprintf( 2, "\e[2K\e[0G\e[32;1m < EZMEM : Done creating memory report %s > \e[0m\n\n", REPORT_FILE );
 
-	system( "echo ; cat " REPORT_FILE );
+	system( "cat " REPORT_FILE );
 
 	kill( 0, sig );
 }
@@ -14,7 +14,7 @@ static inline void dump_leak( int fd, t_memblk *mem )
 	dprintf( fd, "\nLEAK DUMP : ID %ld SIZ %ld ADDR %#llX\n", mem->id, mem->siz, mem->ptr );
 	unsigned long long *cast = ( unsigned long long * ) mem->ptr;
 
-	dprintf( fd, "\n\nHEX :\n", mem->id, mem->siz, mem->ptr );
+	dprintf( fd, "\nHEX :\n", mem->id, mem->siz, mem->ptr );
 	i = 0;
 	while (i < mem->siz)
 	{
@@ -164,7 +164,7 @@ static inline void create_mem_report( int sig )
 	int init_report_fd = open( REPORT_FILE, O_CREAT | O_WRONLY | O_APPEND, 0700 );
 	dprintf( init_report_fd, "\
 ================================================================================\n\
-=== MEMORY REPORT\n\n" );
+=== LEAKS REPORT\n\n" );
 	close( init_report_fd );
 	while (ent)
 	{
@@ -182,11 +182,11 @@ static inline void create_mem_report( int sig )
 	int report_fd = open( REPORT_FILE, O_CREAT | O_WRONLY | O_APPEND, 0700 );
 	dprintf( report_fd, "\n\
 ================================================================================\n\
-MEMORY STATS : \n\
-- total memory used  : %lld\n\
-- total memory freed : %lld\n\
-- alloc count        : %lld\n\
-- free count         : %lld\n", mstat.total_mem_use, mstat.total_mem_free, mstat.allo_cnt, mstat.free_cnt );
+=== MEMORY STATS\n\n\
+Total memory used  : %lld\n\
+Total memory freed : %lld\n\
+Alloc count        : %lld\n\
+Free count         : %lld\n\n", mstat.total_mem_use, mstat.total_mem_free, mstat.allo_cnt, mstat.free_cnt );
 	close( report_fd );
 
 	quit( sig );

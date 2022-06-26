@@ -32,9 +32,8 @@ void		tab_free( char **tab )
 	i = 0;
 	while (tab && tab[i + 1])
 	{
-		if (rand() % 2 == 0)
+		if (rand() % 100 != 0)
 		{
-			puts( "LOTTO" );
 			free( tab[i] );
 		}
 		tab[i] = NULL;
@@ -52,7 +51,7 @@ int			main( void )
 	char	**tab;
 
 	srand( time( 0 ) );
-	tab = tab_alloc( 300, 3 );
+	tab = tab_alloc( 3, 300 );
 	tab_free( tab );
 
 	// while (1);

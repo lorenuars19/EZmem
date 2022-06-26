@@ -47,7 +47,7 @@ int			main( void )
 {
 	char** tab;
 
-	tab = tab_alloc( 300, 30 );
+	tab = tab_alloc( 3, 300 );
 	tab_free( tab );
 	return ( 0 );
 }
