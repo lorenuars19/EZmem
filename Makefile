@@ -13,7 +13,7 @@ SRCS = \
 	constructor.h \
 	destructor.h \
 	output_data.h \
-	wrap.h \
+	wrap_allo_free.h \
 
 SRC = $(addprefix srcs/,$(SRCS))
 

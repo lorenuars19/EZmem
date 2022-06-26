@@ -35,7 +35,7 @@ static inline void	constructor()
 	create_dir( MEM_FOLDER );
 	create_dir( LEAKS_FOLDER );
 
-	create_file( SUMMARY_FILE, NULL );
+	create_file( LOG_FILE, NULL );
 	create_file( IDS_FILE, writ_init_id );
 	create_file( README_FILE, writ_readme );
 }

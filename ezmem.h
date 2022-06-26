@@ -20,7 +20,7 @@
 // Define some internal constants
 #define MAIN_FOLDER "./.ezmem"
 #define MEM_FOLDER "./.ezmem/mem/"
-#define SUMMARY_FILE "./.ezmem/summary.memlog"
+#define LOG_FILE "./.ezmem/log.memlog"
 #define LEAKS_FOLDER "./.ezmem/leaks"
 #define IDS_FILE "./.ezmem/.ids.memid"
 #define README_FILE "./.ezmem/README.txt"
@@ -216,7 +216,7 @@ static inline void	constructor()
 	create_dir( MEM_FOLDER );
 	create_dir( LEAKS_FOLDER );
 
-	create_file( SUMMARY_FILE, NULL );
+	create_file( LOG_FILE, NULL );
 	create_file( IDS_FILE, writ_init_id );
 	create_file( README_FILE, writ_readme );
 }
@@ -332,7 +332,7 @@ static inline void output_data( t_memblk *mem, t_aof aof )
 
 	// Generate filename
 	char fname[FNAME_MAXLEN] = { [0 ... ( FNAME_MAXLEN - 1 )] = 0 };
-	snprintf( fname, FNAME_MAXLEN, MEM_FOLDER "I_%08ld__S_%08ld__A_%#llX", id, mem->siz, ( uintptr_t ) mem->ptr );
+	snprintf( fname, FNAME_MAXLEN, MEM_FOLDER "I_%ld__S_%ld__A_%#llX", id, mem->siz, ( uintptr_t ) mem->ptr );
 
 	// Open file
 	if (aof == ALLO)
@@ -375,15 +375,24 @@ static inline void output_data( t_memblk *mem, t_aof aof )
 		snprintf( loc, LOC_MAXLEN, "FREE : %s:%ld in %s()\n", mem->loc.file, mem->loc.line, mem->loc.func );
 	}
 	put_str( fd, loc );
-
 	close( fd );
+
+	if (aof == FREE)
+	{
+		char frename[FNAME_MAXLEN] = { [0 ... ( FNAME_MAXLEN - 1 )] = 0 };
+		snprintf( frename, FNAME_MAXLEN, "%s__R", fname );
+		if (rename( fname, frename ))
+		{
+			dprintf( 2, "\e[31;1m < EZMEM : Error : rename memblk [%s] >> [%s] file in output_data()\n", fname, frename );
+		}
+	}
 
 	int summ_fd;
 
-	summ_fd = open( SUMMARY_FILE, O_WRONLY | O_APPEND );
+	summ_fd = open( LOG_FILE, O_WRONLY | O_APPEND );
 	if (summ_fd < 0)
 	{
-		dprintf( 2, "\e[31;1m < EZMEM : Error : open summary [%s] file in output_data()\n", SUMMARY_FILE );
+		dprintf( 2, "\e[31;1m < EZMEM : Error : open summary [%s] file in output_data()\n", LOG_FILE );
 	}
 	dprintf( summ_fd, "%s : ID %-16ld - SIZE %-16ld - ADDR %#X | %s", ( aof == ALLO ) ? ( "ALLO" ) : ( "FREE" ), id, mem->siz, mem->ptr, loc );
 
@@ -392,7 +401,7 @@ static inline void output_data( t_memblk *mem, t_aof aof )
 
 }
 
-//////////////////////////////////////////////////////////// srcs/wrap.h
+//////////////////////////////////////////////////////////// srcs/wrap_allo_free.h
 static inline void *_WRAPPED_malloc( size_t size, size_t line, const char *func, const char *file )
 {
 	t_memblk	mem = ( t_memblk ){ NULL, size, ( t_location ) { line, func, file } };
