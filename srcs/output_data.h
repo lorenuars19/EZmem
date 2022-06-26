@@ -92,7 +92,7 @@ static inline void output_data( t_memblk *mem, t_aof aof )
 
 	// Generate filename
 	char fname[FNAME_MAXLEN] = { [0 ... ( FNAME_MAXLEN - 1 )] = 0 };
-	snprintf( fname, FNAME_MAXLEN, MEM_FOLDER "I_%ld__S_%ld__A_%#llX", mem->id, mem->siz, ( uintptr_t ) mem->ptr );
+	snprintf( fname, FNAME_MAXLEN, MEM_FOLDER MEM_FMT, mem->id, mem->siz, ( uintptr_t ) mem->ptr );
 
 	// Open file
 	if (aof == ALLO)
