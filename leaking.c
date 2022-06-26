@@ -62,5 +62,8 @@ int			main( void )
 	f1( &tab );
 	tab_free( tab );
 	free( NULL );
+
+	while (1);
+
 	return ( 0 );
 }

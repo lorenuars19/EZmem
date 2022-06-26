@@ -13,6 +13,7 @@ then
 # What is this, what does it do
 This project wraps calls to `malloc` and `free` using `#define`, hence it can't wrap calls that are outside of your own code.<br>
 It creates an `.ezmem` folder where the program is executed.<br>
+Also this tool makes calls to `signal` function to call `create_mem_report` on `SIGINT`, `SIGTERM`, `SIGABRT`, `SIGBUS`, `SIGQUIT`.
 Also this tool never allocates memory during execution, everything is done with static buffers.<br>
 
 ## Content of `.ezmem` folder

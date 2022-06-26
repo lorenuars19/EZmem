@@ -23,6 +23,8 @@ static inline void writ_init_id( int fd )
 
 static inline int get_memid( long long* num_ptr );
 
+static inline void create_mem_report( int sig );
+
 static inline void	constructor()
 {
 	struct stat st = { 0 };
@@ -38,4 +40,10 @@ static inline void	constructor()
 	create_file( LOG_FILE, NULL );
 	create_file( IDS_FILE, writ_init_id );
 	create_file( README_FILE, writ_readme );
+
+	signal( SIGINT, create_mem_report );
+	signal( SIGTERM, create_mem_report );
+	signal( SIGABRT, create_mem_report );
+	signal( SIGBUS, create_mem_report );
+	signal( SIGQUIT, create_mem_report );
 }

@@ -9,6 +9,7 @@
 #include <dirent.h>
 #include <string.h>
 #include <stdint.h>
+#include <signal.h>
 
 // Define useful macros
 #define STR(S) #S

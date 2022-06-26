@@ -13,6 +13,7 @@
 #include <dirent.h>
 #include <string.h>
 #include <stdint.h>
+#include <signal.h>
 
 // Define useful macros
 #define STR(S) #S
@@ -212,6 +213,8 @@ static inline void writ_init_id( int fd )
 
 static inline int get_memid( long long* num_ptr );
 
+static inline void create_mem_report( int sig );
+
 static inline void	constructor()
 {
 	struct stat st = { 0 };
@@ -227,20 +230,25 @@ static inline void	constructor()
 	create_file( LOG_FILE, NULL );
 	create_file( IDS_FILE, writ_init_id );
 	create_file( README_FILE, writ_readme );
+
+	signal( SIGINT, create_mem_report );
+	signal( SIGQUIT, create_mem_report );
 }
 
 //////////////////////////////////////////////////////////// srcs/destructor.h
 static inline void	destructor() __attribute__( ( destructor ) );
 
-static inline void create_mem_report( void )
+static inline void create_mem_report( int sig )
 {
-
+	printf( "MEM REPORT CALLED\n" );
+	signal( sig, SIG_DFL );
+	kill( 0, sig );
 }
 
 static inline void	destructor()
 {
 	// code here
-	create_mem_report();
+	create_mem_report( 0 );
 }
 
 //////////////////////////////////////////////////////////// srcs/output_data.h
