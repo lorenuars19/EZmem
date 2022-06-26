@@ -17,7 +17,7 @@ Also this tool never allocates memory during execution, everything is done with 
 
 ## Content of `.ezmem` folder
 - README : this short explanation
-- .ids.memid : internal file to track current ID whitout the use of global variable 
+- .ids.memid : internal file to track current ID whitout the use of global variable
 - log.memlog : Log of all the calls to `malloc` and `free`
 - mem/ : contains the memory blocks
 - leaks/ : contains the memory blocks that have never been `free`d; A leaked block also contains a memory dump to help you find the source of your leak
@@ -31,7 +31,6 @@ This tool uses `open` and `close` to write and read to files, however it * shoul
 The calls to `open` and I/O manip are all encapsulated inside the wrapped funcs, so it * should * not affect your `FD`s.<br>
 
 # Contribute
-This project is still being polished.<br>
 Feel free to submit `issues` and `pull requests`, I'll gladly review them.<br>
 <br>
 Thanks for using my tool.

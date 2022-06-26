@@ -106,7 +106,7 @@ static inline void output_data( t_memblk *mem, t_aof aof )
 	if (fd < 0)
 	{
 		//TODO:error
-		dprintf( 2, "\e[31;1m < EZMEM : Error : open memblk [%s] file in output_data()\n", fname );
+		ERR( "open memblk [%s] file in output_data()", fname );
 	}
 	if (aof == ALLO)
 	{
@@ -143,7 +143,7 @@ static inline void output_data( t_memblk *mem, t_aof aof )
 		snprintf( frename, FNAME_MAXLEN, "%s__R", fname );
 		if (rename( fname, frename ))
 		{
-			dprintf( 2, "\e[31;1m < EZMEM : Error : rename memblk [%s] >> [%s] file in output_data()\n", fname, frename );
+			ERR( "rename memblk [%s] >> [%s] file in output_data()", fname, frename );
 		}
 	}
 
@@ -152,7 +152,7 @@ static inline void output_data( t_memblk *mem, t_aof aof )
 	summ_fd = open( LOG_FILE, O_WRONLY | O_APPEND );
 	if (summ_fd < 0)
 	{
-		dprintf( 2, "\e[31;1m < EZMEM : Error : open summary [%s] file in output_data()\n", LOG_FILE );
+		ERR( "open summary [%s] file in output_data()", LOG_FILE );
 	}
 	dprintf( summ_fd, "%s : ID %-16ld - SIZE %-16ld - ADDR %#X | %s", ( aof == ALLO ) ? ( "ALLO" ) : ( "FREE" ), id, mem->siz, mem->ptr, loc );
 

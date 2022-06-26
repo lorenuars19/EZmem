@@ -12,6 +12,12 @@
 
 // Define useful macros
 #define STR(S) #S
+#define ERR(...) \
+dprintf(2, "\e[31;1m < EZMEM %s:%d in %s() : Error : ", __FILE__, __LINE__, __FUNCTION__); \
+dprintf(2, __VA_ARGS__ ); dprintf(2, " > \e[0m\n" );
+
+#define FAT_ERR(...) ERR(__VA_ARGS); exit(1);
+
 
 // Define some internal constants
 #define MAIN_FOLDER "./.ezmem"
@@ -19,7 +25,7 @@
 #define LOG_FILE "./.ezmem/log.memlog"
 #define LEAKS_FOLDER "./.ezmem/leaks"
 #define IDS_FILE "./.ezmem/.ids.memid"
-#define README_FILE "./.ezmem/README.txt"
+#define README_FILE "./.ezmem/README.md"
 
 #define FNAME_MAXLEN 1024
 #define LOC_MAXLEN 512

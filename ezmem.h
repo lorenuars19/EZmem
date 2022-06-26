@@ -16,6 +16,12 @@
 
 // Define useful macros
 #define STR(S) #S
+#define ERR(...) \
+dprintf(2, "\e[31;1m < EZMEM %s:%d in %s() : Error : ", __FILE__, __LINE__, __FUNCTION__); \
+dprintf(2, __VA_ARGS__ ); dprintf(2, " > \e[0m\n" );
+
+#define FAT_ERR(...) ERR(__VA_ARGS); exit(1);
+
 
 // Define some internal constants
 #define MAIN_FOLDER "./.ezmem"
@@ -23,7 +29,11 @@
 #define LOG_FILE "./.ezmem/log.memlog"
 #define LEAKS_FOLDER "./.ezmem/leaks"
 #define IDS_FILE "./.ezmem/.ids.memid"
-#define README_FILE "./.ezmem/README.txt"
+#define README_FILE "./.ezmem/README.md"
+
+#define FNAME_MAXLEN 1024
+#define LOC_MAXLEN 512
+#define ID_MAX_LEN 42
 
 // Define structs
 typedef struct s_location
@@ -137,9 +147,6 @@ static inline size_t put_nbr_base( int fd, ssize_t num, ssize_t base, char* b_ch
 }
 
 //////////////////////////////////////////////////////////// srcs/id_management.h
-
-#define ID_MAX_LEN 42
-
 static inline int get_curr_id( size_t* num_ptr )
 {
 	size_t		number = 0;
@@ -184,15 +191,15 @@ static inline void	constructor() __attribute__( ( constructor ) );
 static inline void writ_readme( int fd )
 {
 	static char str[] = "\
-Content of the EZMEM folder :\n\
-	- mem/ :\n\
-		Contains one file for each memory block\n\
-	- leaks/ :\n\
-		Contains one file per memory blocks that has never been freed\n\
-	- summary.memlog :\n\
-		Contains log of memory alloc / frees during execution\n\
-	- .ids.memid :\n\
-		Helper internal file tracking current ID\n";
+## Content of `.ezmem` folder\n\
+- README : this short explanation\n\
+- .ids.memid : internal file to track current ID whitout the use of global variable\n\
+- log.memlog : Log of all the calls to `malloc` and `free`\n\
+- mem / : contains the memory blocks\n\
+- leaks / : contains the memory blocks that have never been `free`d; A leaked block also contains a memory dump to help you find the source of your leak\n\
+\n\
+At the end of execution a `report.memreport` is generated to summarize the last recorded memory state.\n\
+";
 
 	put_str( fd, str );
 }
@@ -224,7 +231,7 @@ static inline void	constructor()
 //////////////////////////////////////////////////////////// srcs/destructor.h
 static inline void	destructor() __attribute__( ( destructor ) );
 
-static inline create_mem_report( void )
+static inline void create_mem_report( void )
 {
 
 }
@@ -241,9 +248,6 @@ typedef enum e_allo_or_free
 	ALLO,
 	FREE
 }	t_aof;
-
-#define FNAME_MAXLEN 1024
-#define LOC_MAXLEN 512
 
 static inline int parse_id_siz( t_memblk *mem, size_t *id, char *s )
 {
@@ -274,10 +278,6 @@ static inline int parse_id_siz( t_memblk *mem, size_t *id, char *s )
 	return ( 0 );
 }
 
-#define D printf( " < MEM ptr %p siz %ld | LOC %s:%d in %s() > \n",	\
-	mem->ptr, mem->siz, mem->loc.file, mem->loc.line, mem->loc.func );
-
-
 static inline int detect_id( t_memblk *mem, t_aof aof, size_t *id )
 {
 	// ID management
@@ -302,7 +302,6 @@ static inline int detect_id( t_memblk *mem, t_aof aof, size_t *id )
 		ffd = opendir( MEM_FOLDER );
 		if (ffd == NULL)
 		{
-			// puts( "Error: FREE get ID failed to open dir" MEM_FOLDER );
 			return ( 3 );
 		}
 		ent = ( struct dirent* ) 1;
@@ -352,7 +351,7 @@ static inline void output_data( t_memblk *mem, t_aof aof )
 	if (fd < 0)
 	{
 		//TODO:error
-		dprintf( 2, "\e[31;1m < EZMEM : Error : open memblk [%s] file in output_data()\n", fname );
+		ERR( "open memblk [%s] file in output_data()", fname );
 	}
 	if (aof == ALLO)
 	{
@@ -389,7 +388,7 @@ static inline void output_data( t_memblk *mem, t_aof aof )
 		snprintf( frename, FNAME_MAXLEN, "%s__R", fname );
 		if (rename( fname, frename ))
 		{
-			dprintf( 2, "\e[31;1m < EZMEM : Error : rename memblk [%s] >> [%s] file in output_data()\n", fname, frename );
+			ERR( "rename memblk [%s] >> [%s] file in output_data()", fname, frename );
 		}
 	}
 
@@ -398,7 +397,7 @@ static inline void output_data( t_memblk *mem, t_aof aof )
 	summ_fd = open( LOG_FILE, O_WRONLY | O_APPEND );
 	if (summ_fd < 0)
 	{
-		dprintf( 2, "\e[31;1m < EZMEM : Error : open summary [%s] file in output_data()\n", LOG_FILE );
+		ERR( "open summary [%s] file in output_data()", LOG_FILE );
 	}
 	dprintf( summ_fd, "%s : ID %-16ld - SIZE %-16ld - ADDR %#X | %s", ( aof == ALLO ) ? ( "ALLO" ) : ( "FREE" ), id, mem->siz, mem->ptr, loc );
 

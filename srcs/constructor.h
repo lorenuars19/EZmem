@@ -3,15 +3,15 @@ static inline void	constructor() __attribute__( ( constructor ) );
 static inline void writ_readme( int fd )
 {
 	static char str[] = "\
-Content of the EZMEM folder :\n\
-	- mem/ :\n\
-		Contains one file for each memory block\n\
-	- leaks/ :\n\
-		Contains one file per memory blocks that has never been freed\n\
-	- summary.memlog :\n\
-		Contains log of memory alloc / frees during execution\n\
-	- .ids.memid :\n\
-		Helper internal file tracking current ID\n";
+## Content of `.ezmem` folder\n\
+- README : this short explanation\n\
+- .ids.memid : internal file to track current ID whitout the use of global variable\n\
+- log.memlog : Log of all the calls to `malloc` and `free`\n\
+- mem / : contains the memory blocks\n\
+- leaks / : contains the memory blocks that have never been `free`d; A leaked block also contains a memory dump to help you find the source of your leak\n\
+\n\
+At the end of execution a `report.memreport` is generated to summarize the last recorded memory state.\n\
+";
 
 	put_str( fd, str );
 }
