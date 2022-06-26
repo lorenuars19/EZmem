@@ -10,10 +10,10 @@ SRCS = \
 	utils_file.h \
 	utils_nbr.h \
 	id_management.h \
-	constructor.h \
 	create_mem_report.h \
-	destructor.h \
 	output_data.h \
+	destructor.h \
+	constructor.h \
 	wrap_allo_free.h \
 
 SRC = $(addprefix srcs/,$(SRCS))

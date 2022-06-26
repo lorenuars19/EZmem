@@ -201,57 +201,6 @@ static inline int update_id( size_t curr_id )
 	return( 0 );
 }
 
-//////////////////////////////////////////////////////////// srcs/constructor.h
-static inline void	constructor() __attribute__( ( constructor ) );
-
-static inline void writ_readme( int fd )
-{
-	static char str[] = "\
-## Content of `.ezmem` folder\n\
-- README : this short explanation\n\
-- .ids.memid : internal file to track current ID whitout the use of global variable\n\
-- log.memlog : Log of all the calls to `malloc` and `free`\n\
-- mem / : contains the memory blocks\n\
-- leaks / : contains the memory blocks that have never been `free`d; A leaked block also contains a memory dump to help you find the source of your leak\n\
-\n\
-At the end of execution a `report.memreport` is generated to summarize the last recorded memory state.\n\
-";
-
-	put_str( fd, str );
-}
-
-static inline void writ_init_id( int fd )
-{
-	put_str( fd, "0" );
-}
-
-static inline int get_memid( long long* num_ptr );
-
-static inline void create_mem_report( int sig );
-
-static inline void	constructor()
-{
-	struct stat st = { 0 };
-	if (stat( MAIN_FOLDER, &st ) != -1)
-	{
-		system( "rm -rf ./" MAIN_FOLDER );
-	}
-
-	create_dir( MAIN_FOLDER );
-	create_dir( MEM_FOLDER );
-	create_dir( LEAKS_FOLDER );
-
-	create_file( LOG_FILE, NULL );
-	create_file( IDS_FILE, writ_init_id );
-	create_file( README_FILE, writ_readme );
-
-	signal( SIGINT, create_mem_report );
-	signal( SIGTERM, create_mem_report );
-	signal( SIGABRT, create_mem_report );
-	signal( SIGBUS, create_mem_report );
-	signal( SIGQUIT, create_mem_report );
-}
-
 //////////////////////////////////////////////////////////// srcs/create_mem_report.h
 static inline void quit( int sig )
 {
@@ -447,14 +396,6 @@ Free count         : %lld\n\n", mstat.total_mem_use, mstat.total_mem_free, mstat
 	quit( sig );
 }
 
-//////////////////////////////////////////////////////////// srcs/destructor.h
-static inline void	destructor() __attribute__( ( destructor ) );
-
-static inline void	destructor()
-{
-	create_mem_report( 0 );
-}
-
 //////////////////////////////////////////////////////////// srcs/output_data.h
 typedef enum e_allo_or_free
 {
@@ -613,6 +554,65 @@ static inline void output_data( t_memblk *mem, t_aof aof )
 	}
 	dprintf( summ_fd, "%s : ID %-16ld - SIZE %-16ld - ADDR %#X | %s", ( aof == ALLO ) ? ( "ALLO" ) : ( "FREE" ), mem->id, mem->siz, mem->ptr, loc );
 	close( summ_fd );
+}
+
+//////////////////////////////////////////////////////////// srcs/destructor.h
+static inline void	destructor() __attribute__( ( destructor ) );
+
+static inline void	destructor()
+{
+	create_mem_report( 0 );
+}
+
+//////////////////////////////////////////////////////////// srcs/constructor.h
+static inline void	constructor() __attribute__( ( constructor ) );
+
+static inline void writ_readme( int fd )
+{
+	static char str[] = "\
+## Content of `.ezmem` folder\n\
+- README : this short explanation\n\
+- .ids.memid : internal file to track current ID whitout the use of global variable\n\
+- log.memlog : Log of all the calls to `malloc` and `free`\n\
+- mem / : contains the memory blocks\n\
+- leaks / : contains the memory blocks that have never been `free`d; A leaked block also contains a memory dump to help you find the source of your leak\n\
+\n\
+At the end of execution a `report.memreport` is generated to summarize the last recorded memory state.\n\
+";
+
+	put_str( fd, str );
+}
+
+static inline void writ_init_id( int fd )
+{
+	put_str( fd, "0" );
+}
+
+static inline int get_memid( long long* num_ptr );
+
+static inline void create_mem_report( int sig );
+
+static inline void	constructor()
+{
+	struct stat st = { 0 };
+	if (stat( MAIN_FOLDER, &st ) != -1)
+	{
+		system( "rm -rf ./" MAIN_FOLDER );
+	}
+
+	create_dir( MAIN_FOLDER );
+	create_dir( MEM_FOLDER );
+	create_dir( LEAKS_FOLDER );
+
+	create_file( LOG_FILE, NULL );
+	create_file( IDS_FILE, writ_init_id );
+	create_file( README_FILE, writ_readme );
+
+	signal( SIGINT, create_mem_report );
+	signal( SIGTERM, create_mem_report );
+	signal( SIGABRT, create_mem_report );
+	signal( SIGBUS, create_mem_report );
+	signal( SIGQUIT, create_mem_report );
 }
 
 //////////////////////////////////////////////////////////// srcs/wrap_allo_free.h
