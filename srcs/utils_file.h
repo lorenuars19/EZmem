@@ -21,6 +21,8 @@ static inline int create_file( char* path, void ( *func )( int fd ) )
 	if (stat( path, &st ) == -1)
 	{
 		fd = open( path, O_CREAT | O_RDWR | O_CLOEXEC, 0700 );
+		FD( fd );
+
 	}
 	if (fd < 1)
 	{

@@ -28,8 +28,8 @@ At the end of execution a `report.memreport` is generated to summarize the last 
 ## More info
 This repo contains header fragments in the `srcs/` folder which are concatenated to the final ezmem.h, this is done only for ease of developement.<br>
 You only need to get the latest `ezmem.h` and include it in the files you want to be tracked.<br>
-This tool uses `open` and `close` to write and read to files, however it * should * not use more more than one `FD`.<br>
-The calls to `open` and I/O manip are all encapsulated inside the wrapped funcs, so it * should * not affect your `FD`s.<br>
+This tool uses `open` and `close` to write and read to files, however it WILL not use more more than one `FD`.<br>
+The calls to `open` and I/O manip are all encapsulated inside the wrapped funcs, so it WILL not affect your `FD`s.<br>
 
 # Contribute
 Feel free to submit `issues` and `pull requests`, I'll gladly review them.<br>

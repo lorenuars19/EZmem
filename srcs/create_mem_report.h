@@ -102,6 +102,8 @@ static inline int process_fname( char *s, t_mstat * mstat )
 	char fname[FNAME_MAXLEN] = { [0 ... ( FNAME_MAXLEN - 1 )] = 0 };
 	snprintf( fname, FNAME_MAXLEN, MEM_FOLDER MEM_FMT, mem.id, mem.siz, ( uintptr_t ) mem.ptr );
 	int fd = open( fname, O_RDONLY );
+	FD( fd );
+
 	if (fd < 0)
 	{
 		ERR( "open : invalid fd %d", fd );
@@ -121,6 +123,8 @@ static inline int process_fname( char *s, t_mstat * mstat )
 	char leak_fname[FNAME_MAXLEN] = { [0 ... ( FNAME_MAXLEN - 1 )] = 0 };
 	snprintf( leak_fname, FNAME_MAXLEN, LEAKS_FOLDER "ID_%ld__SIZ_%ld__ADDR_%#llX_LEAKED", mem.id, mem.siz, ( uintptr_t ) mem.ptr );
 	int leak_fd = open( leak_fname, O_CREAT | O_WRONLY | O_TRUNC, 0700 );
+	FD( leak_fd );
+
 	if (leak_fd < 0)
 	{
 		ERR( "open : invalid leak_fd %d", leak_fd );
@@ -130,6 +134,8 @@ static inline int process_fname( char *s, t_mstat * mstat )
 	close( leak_fd );
 
 	int report_fd = open( REPORT_FILE, O_CREAT | O_WRONLY | O_APPEND, 0700 );
+	FD( report_fd );
+
 	dprintf( report_fd, "LEAK : ID %-16lld SIZ %-16lld ADDR %#llX\n", mem.id, mem.siz, ( uintptr_t ) mem.ptr );
 	close( report_fd );
 	return ( 0 );
@@ -162,6 +168,8 @@ static inline void create_mem_report( int sig )
 	n_files = 0;
 	dprintf( 2, "\n\e[32;1m < EZMEM : Creating memory report %s> \e[0m", anim[0] );
 	int init_report_fd = open( REPORT_FILE, O_CREAT | O_WRONLY | O_APPEND, 0700 );
+	FD( init_report_fd );
+
 	dprintf( init_report_fd, "\
 ================================================================================\n\
 === LEAKS REPORT\n\n" );
@@ -180,6 +188,8 @@ static inline void create_mem_report( int sig )
 	closedir( ffd );
 
 	int report_fd = open( REPORT_FILE, O_CREAT | O_WRONLY | O_APPEND, 0700 );
+	FD( report_fd );
+
 	dprintf( report_fd, "\n\
 ================================================================================\n\
 === MEMORY STATS\n\n\

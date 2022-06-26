@@ -6,6 +6,8 @@ static inline int get_curr_id( size_t* num_ptr )
 	int			ret = 0;
 
 	fd = open( IDS_FILE, O_RDONLY | O_CLOEXEC );
+	FD( fd );
+
 	if (fd < 0)
 		return ( 1 );
 
@@ -27,6 +29,8 @@ static inline int update_id( size_t curr_id )
 	int			ret = 0;
 
 	fd = open( IDS_FILE, O_RDWR | O_TRUNC, 0700 );
+	FD( fd );
+
 	if (fd < 0)
 		return ( 1 );
 

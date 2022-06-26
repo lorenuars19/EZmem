@@ -103,6 +103,8 @@ static inline void output_data( t_memblk *mem, t_aof aof )
 	{
 		fd = open( fname, O_WRONLY | O_APPEND );
 	}
+	FD( fd );
+
 	if (fd < 0)
 	{
 		ERR( "open memblk [%s] file in output_data()", fname );
@@ -149,6 +151,8 @@ static inline void output_data( t_memblk *mem, t_aof aof )
 	int summ_fd;
 
 	summ_fd = open( LOG_FILE, O_WRONLY | O_APPEND );
+	FD( fd );
+
 	if (summ_fd < 0)
 	{
 		ERR( "open summary [%s] file in output_data()", LOG_FILE );
