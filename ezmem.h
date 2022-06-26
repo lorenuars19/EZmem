@@ -224,9 +224,15 @@ static inline void	constructor()
 //////////////////////////////////////////////////////////// srcs/destructor.h
 static inline void	destructor() __attribute__( ( destructor ) );
 
+static inline create_mem_report( void )
+{
+
+}
+
 static inline void	destructor()
 {
 	// code here
+	create_mem_report();
 }
 
 //////////////////////////////////////////////////////////// srcs/output_data.h

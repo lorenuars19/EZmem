@@ -21,6 +21,10 @@
 #define IDS_FILE "./.ezmem/.ids.memid"
 #define README_FILE "./.ezmem/README.txt"
 
+#define FNAME_MAXLEN 1024
+#define LOC_MAXLEN 512
+#define ID_MAX_LEN 42
+
 // Define structs
 typedef struct s_location
 {

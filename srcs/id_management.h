@@ -1,6 +1,3 @@
-
-#define ID_MAX_LEN 42
-
 static inline int get_curr_id( size_t* num_ptr )
 {
 	size_t		number = 0;

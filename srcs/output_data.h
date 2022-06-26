@@ -4,9 +4,6 @@ typedef enum e_allo_or_free
 	FREE
 }	t_aof;
 
-#define FNAME_MAXLEN 1024
-#define LOC_MAXLEN 512
-
 static inline int parse_id_siz( t_memblk *mem, size_t *id, char *s )
 {
 	const uintptr_t mem_ptr = ( uintptr_t ) mem->ptr;
@@ -36,10 +33,6 @@ static inline int parse_id_siz( t_memblk *mem, size_t *id, char *s )
 	return ( 0 );
 }
 
-#define D printf( " < MEM ptr %p siz %ld | LOC %s:%d in %s() > \n",	\
-	mem->ptr, mem->siz, mem->loc.file, mem->loc.line, mem->loc.func );
-
-
 static inline int detect_id( t_memblk *mem, t_aof aof, size_t *id )
 {
 	// ID management
@@ -64,7 +57,6 @@ static inline int detect_id( t_memblk *mem, t_aof aof, size_t *id )
 		ffd = opendir( MEM_FOLDER );
 		if (ffd == NULL)
 		{
-			// puts( "Error: FREE get ID failed to open dir" MEM_FOLDER );
 			return ( 3 );
 		}
 		ent = ( struct dirent* ) 1;
