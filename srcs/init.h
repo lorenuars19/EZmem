@@ -14,7 +14,7 @@
 // Define useful macros
 #define STR(S) #S
 #define ERR(...) \
-dprintf(2, "\e[31m < EZMEM %s:%d in %s() : Error : ", __FILE__, __LINE__, __FUNCTION__); \
+dprintf(2, "\n\e[31m < EZMEM %s:%d in %s() : Error : ", __FILE__, __LINE__, __FUNCTION__); \
 dprintf(2, __VA_ARGS__ ); dprintf(2, " > \e[0m\n" );
 
 #define FAT_ERR(...) ERR(__VA_ARGS__); \
@@ -25,6 +25,7 @@ dprintf(2, "\e[31;1m < EZMEM FATAL ERROR : EXIT >\e[0m\n" ); exit(1);
 #define MAIN_FOLDER "./.ezmem"
 #define MEM_FOLDER "./.ezmem/mem/"
 #define LOG_FILE "./.ezmem/log.memlog"
+#define REPORT_FILE "./.ezmem/report.memreport"
 #define LEAKS_FOLDER "./.ezmem/leaks"
 #define IDS_FILE "./.ezmem/.ids.memid"
 #define README_FILE "./.ezmem/README.md"
@@ -43,7 +44,16 @@ typedef struct s_location
 
 typedef struct s_mem_blok
 {
+	size_t	id;
 	void	*ptr;
 	size_t	siz;
 	t_location	loc;
 }	t_memblk;
+
+typedef struct s_mem_stat
+{
+	size_t	total_mem_use;
+	size_t	total_mem_free;
+	size_t	allo_cnt;
+	size_t	free_cnt;
+}	t_mstat;

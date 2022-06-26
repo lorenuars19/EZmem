@@ -4,7 +4,7 @@ typedef enum e_allo_or_free
 	FREE
 }	t_aof;
 
-static inline int parse_id_siz( t_memblk *mem, size_t *id, char *s )
+static inline int parse_id_siz( t_memblk *mem, char *s )
 {
 	const uintptr_t mem_ptr = ( uintptr_t ) mem->ptr;
 	uintptr_t ptr = 0;
@@ -22,7 +22,7 @@ static inline int parse_id_siz( t_memblk *mem, size_t *id, char *s )
 	{
 		i = 0;
 		// Parse ID
-		*id = strtoull( s + 2, NULL, 10 );
+		mem->id = strtoull( s + 2, NULL, 10 );
 		// Parse SIZ
 		while (s && s[i] && s[i] != 'S')
 			i++;
@@ -33,21 +33,21 @@ static inline int parse_id_siz( t_memblk *mem, size_t *id, char *s )
 	return ( 0 );
 }
 
-static inline int detect_id( t_memblk *mem, t_aof aof, size_t *id )
+static inline int detect_id( t_memblk *mem, t_aof aof )
 {
 	// ID management
 	//	- GET ID
 	if (aof == ALLO)
 	{
-		if (get_curr_id( id ))
+		if (get_curr_id( &( mem->id ) ))
 		{
-			ERR( "get_curr_id: *id %p", id );
+			ERR( "get_curr_id: *id %p id %d", &( mem->id ), mem->id );
 			return ( 1 );
 		}
 		//	- INCREMENT ID
-		if (update_id( *id ))
+		if (update_id( mem->id ))
 		{
-			ERR( "update_id: *id %p", id );
+			ERR( "update_id: *id %p id %d", &( mem->id ), mem->id );
 			return ( 2 );
 		}
 	}
@@ -55,18 +55,17 @@ static inline int detect_id( t_memblk *mem, t_aof aof, size_t *id )
 	{
 		// read dir and match mem->ptr and get ID and SIZ of mem->ptr
 		DIR *ffd;
-		struct dirent *ent;
 		ffd = opendir( MEM_FOLDER );
 		if (ffd == NULL)
 		{
 			ERR( "opendir: cannot open folder %s | ffd : %p", MEM_FOLDER, ffd );
 			return ( 3 );
 		}
-		ent = ( struct dirent* ) 1;
+		struct dirent *ent = ( struct dirent* ) 1;
 		while (ent)
 		{
 			ent = readdir( ffd );
-			if (ent && parse_id_siz( mem, id, ent->d_name ))
+			if (ent && parse_id_siz( mem, ent->d_name ))
 			{
 				break;
 			}
@@ -79,10 +78,9 @@ static inline int detect_id( t_memblk *mem, t_aof aof, size_t *id )
 static inline void output_data( t_memblk *mem, t_aof aof )
 {
 	int		fd = -1;
-	size_t	id = 0;
 	int		ret = 0;
 
-	ret = detect_id( mem, aof, &id );
+	ret = detect_id( mem, aof );
 	if (ret)
 	{
 		ERR( "detect_id : RET %d", ret )
@@ -94,7 +92,7 @@ static inline void output_data( t_memblk *mem, t_aof aof )
 
 	// Generate filename
 	char fname[FNAME_MAXLEN] = { [0 ... ( FNAME_MAXLEN - 1 )] = 0 };
-	snprintf( fname, FNAME_MAXLEN, MEM_FOLDER "I_%ld__S_%ld__A_%#llX", id, mem->siz, ( uintptr_t ) mem->ptr );
+	snprintf( fname, FNAME_MAXLEN, MEM_FOLDER "I_%ld__S_%ld__A_%#llX", mem->id, mem->siz, ( uintptr_t ) mem->ptr );
 
 	// Open file
 	if (aof == ALLO)
@@ -113,7 +111,7 @@ static inline void output_data( t_memblk *mem, t_aof aof )
 	{
 		// Write DATA to file
 		//	- ID
-		put_nbr( fd, id );
+		put_nbr( fd, mem->id );
 		put_str( fd, " - ID\n" );
 		//	- SIZ
 		put_nbr( fd, mem->siz );
@@ -155,6 +153,6 @@ static inline void output_data( t_memblk *mem, t_aof aof )
 	{
 		ERR( "open summary [%s] file in output_data()", LOG_FILE );
 	}
-	dprintf( summ_fd, "%s : ID %-16ld - SIZE %-16ld - ADDR %#X | %s", ( aof == ALLO ) ? ( "ALLO" ) : ( "FREE" ), id, mem->siz, mem->ptr, loc );
+	dprintf( summ_fd, "%s : ID %-16ld - SIZE %-16ld - ADDR %#X | %s", ( aof == ALLO ) ? ( "ALLO" ) : ( "FREE" ), mem->id, mem->siz, mem->ptr, loc );
 	close( summ_fd );
 }

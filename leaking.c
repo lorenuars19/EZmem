@@ -42,7 +42,7 @@ void		tab_free( char **tab )
 
 void		f3( char ***tab )
 {
-	*tab = tab_alloc( 3, 3 );
+	*tab = tab_alloc( 3000, 3000 );
 }
 
 void		f2( char ***tab )
@@ -63,7 +63,8 @@ int			main( void )
 	tab_free( tab );
 	free( NULL );
 
-	while (1);
+	// while (1);
+	exit( 1 );
 
 	return ( 0 );
 }

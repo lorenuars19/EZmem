@@ -11,6 +11,7 @@ SRCS = \
 	utils_nbr.h \
 	id_management.h \
 	constructor.h \
+	create_mem_report.h \
 	destructor.h \
 	output_data.h \
 	wrap_allo_free.h \

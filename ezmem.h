@@ -18,7 +18,7 @@
 // Define useful macros
 #define STR(S) #S
 #define ERR(...) \
-dprintf(2, "\e[31m < EZMEM %s:%d in %s() : Error : ", __FILE__, __LINE__, __FUNCTION__); \
+dprintf(2, "\n\e[31m < EZMEM %s:%d in %s() : Error : ", __FILE__, __LINE__, __FUNCTION__); \
 dprintf(2, __VA_ARGS__ ); dprintf(2, " > \e[0m\n" );
 
 #define FAT_ERR(...) ERR(__VA_ARGS__); \
@@ -29,6 +29,7 @@ dprintf(2, "\e[31;1m < EZMEM FATAL ERROR : EXIT >\e[0m\n" ); exit(1);
 #define MAIN_FOLDER "./.ezmem"
 #define MEM_FOLDER "./.ezmem/mem/"
 #define LOG_FILE "./.ezmem/log.memlog"
+#define REPORT_FILE "./.ezmem/report.memreport"
 #define LEAKS_FOLDER "./.ezmem/leaks"
 #define IDS_FILE "./.ezmem/.ids.memid"
 #define README_FILE "./.ezmem/README.md"
@@ -47,10 +48,19 @@ typedef struct s_location
 
 typedef struct s_mem_blok
 {
+	size_t	id;
 	void	*ptr;
 	size_t	siz;
 	t_location	loc;
 }	t_memblk;
+
+typedef struct s_mem_stat
+{
+	size_t	total_mem_use;
+	size_t	total_mem_free;
+	size_t	allo_cnt;
+	size_t	free_cnt;
+}	t_mstat;
 
 //////////////////////////////////////////////////////////// srcs/utils_io.h
 static inline size_t str_len( const char* str )
@@ -232,22 +242,90 @@ static inline void	constructor()
 	create_file( README_FILE, writ_readme );
 
 	signal( SIGINT, create_mem_report );
+	signal( SIGTERM, create_mem_report );
+	signal( SIGABRT, create_mem_report );
+	signal( SIGBUS, create_mem_report );
 	signal( SIGQUIT, create_mem_report );
+}
+
+//////////////////////////////////////////////////////////// srcs/create_mem_report.h
+static inline void quit( int sig )
+{
+	dprintf( 2, "\n\e[32;1m < Done creating memory report %s > \e[0m\n", REPORT_FILE );
+	signal( sig, SIG_DFL );
+	kill( 0, sig );
+}
+
+static inline int process_fname( char *s, t_mstat *mstat )
+{
+	size_t	i = 0;
+	size_t	slen = 0;
+	char	freed = 0;
+
+	if (s && s[0] == '.' || !s)
+	{
+		return ( 0 );
+	}
+
+	slen = str_len( s );
+	if (s[slen - 1] == 'R')
+	{
+		freed = 1;
+	}
+	i = 0;
+
+
+
+
+
+	return ( 0 );
+}
+
+#define ANIM_MAXLEN 3
+#define ANIM_FRAMES 4
+
+static inline void create_mem_report( int sig )
+{
+	t_mstat mstat = ( t_mstat ){ 0, 0, 0, 0 };
+	size_t n_files;
+	static char anim[ANIM_FRAMES][ANIM_MAXLEN] = { "-", "/", "-" , "\\" };
+	struct stat st = { 0 };
+
+	if (stat( REPORT_FILE, &st ) != -1)
+	{
+		ERR( "%s already exists", REPORT_FILE );
+	}
+
+	DIR *ffd;
+	ffd = opendir( MEM_FOLDER );
+	if (ffd == NULL)
+	{
+		ERR( "opendir : cannot open folder %s | ffd : %p", MEM_FOLDER, ffd );
+		quit( sig );
+	}
+	struct dirent *ent = ( struct dirent* ) 1;
+	n_files = 0;
+	dprintf( 2, "\n\e[32;1m < Creating memory report %s> \e[0m", anim[0] );
+	while (ent)
+	{
+		dprintf( 2, "\r\e[32;1m < Creating memory report %s >\e[0m", anim[( n_files / 256 ) % ANIM_FRAMES] );
+		ent = readdir( ffd );
+		if (ent && process_fname( ent->d_name, &mstat ))
+		{
+			ERR( "process_fname : non-zero return | ent %p", ent );
+		}
+		n_files++;
+	}
+
+
+	quit( sig );
 }
 
 //////////////////////////////////////////////////////////// srcs/destructor.h
 static inline void	destructor() __attribute__( ( destructor ) );
 
-static inline void create_mem_report( int sig )
-{
-	printf( "MEM REPORT CALLED\n" );
-	signal( sig, SIG_DFL );
-	kill( 0, sig );
-}
-
 static inline void	destructor()
 {
-	// code here
 	create_mem_report( 0 );
 }
 
@@ -258,7 +336,7 @@ typedef enum e_allo_or_free
 	FREE
 }	t_aof;
 
-static inline int parse_id_siz( t_memblk *mem, size_t *id, char *s )
+static inline int parse_id_siz( t_memblk *mem, char *s )
 {
 	const uintptr_t mem_ptr = ( uintptr_t ) mem->ptr;
 	uintptr_t ptr = 0;
@@ -276,7 +354,7 @@ static inline int parse_id_siz( t_memblk *mem, size_t *id, char *s )
 	{
 		i = 0;
 		// Parse ID
-		*id = strtoull( s + 2, NULL, 10 );
+		mem->id = strtoull( s + 2, NULL, 10 );
 		// Parse SIZ
 		while (s && s[i] && s[i] != 'S')
 			i++;
@@ -287,21 +365,21 @@ static inline int parse_id_siz( t_memblk *mem, size_t *id, char *s )
 	return ( 0 );
 }
 
-static inline int detect_id( t_memblk *mem, t_aof aof, size_t *id )
+static inline int detect_id( t_memblk *mem, t_aof aof )
 {
 	// ID management
 	//	- GET ID
 	if (aof == ALLO)
 	{
-		if (get_curr_id( id ))
+		if (get_curr_id( &( mem->id ) ))
 		{
-			ERR( "get_curr_id: *id %p", id );
+			ERR( "get_curr_id: *id %p id %d", &( mem->id ), mem->id );
 			return ( 1 );
 		}
 		//	- INCREMENT ID
-		if (update_id( *id ))
+		if (update_id( mem->id ))
 		{
-			ERR( "update_id: *id %p", id );
+			ERR( "update_id: *id %p id %d", &( mem->id ), mem->id );
 			return ( 2 );
 		}
 	}
@@ -309,18 +387,17 @@ static inline int detect_id( t_memblk *mem, t_aof aof, size_t *id )
 	{
 		// read dir and match mem->ptr and get ID and SIZ of mem->ptr
 		DIR *ffd;
-		struct dirent *ent;
 		ffd = opendir( MEM_FOLDER );
 		if (ffd == NULL)
 		{
 			ERR( "opendir: cannot open folder %s | ffd : %p", MEM_FOLDER, ffd );
 			return ( 3 );
 		}
-		ent = ( struct dirent* ) 1;
+		struct dirent *ent = ( struct dirent* ) 1;
 		while (ent)
 		{
 			ent = readdir( ffd );
-			if (ent && parse_id_siz( mem, id, ent->d_name ))
+			if (ent && parse_id_siz( mem, ent->d_name ))
 			{
 				break;
 			}
@@ -333,10 +410,9 @@ static inline int detect_id( t_memblk *mem, t_aof aof, size_t *id )
 static inline void output_data( t_memblk *mem, t_aof aof )
 {
 	int		fd = -1;
-	size_t	id = 0;
 	int		ret = 0;
 
-	ret = detect_id( mem, aof, &id );
+	ret = detect_id( mem, aof );
 	if (ret)
 	{
 		ERR( "detect_id : RET %d", ret )
@@ -348,7 +424,7 @@ static inline void output_data( t_memblk *mem, t_aof aof )
 
 	// Generate filename
 	char fname[FNAME_MAXLEN] = { [0 ... ( FNAME_MAXLEN - 1 )] = 0 };
-	snprintf( fname, FNAME_MAXLEN, MEM_FOLDER "I_%ld__S_%ld__A_%#llX", id, mem->siz, ( uintptr_t ) mem->ptr );
+	snprintf( fname, FNAME_MAXLEN, MEM_FOLDER "I_%ld__S_%ld__A_%#llX", mem->id, mem->siz, ( uintptr_t ) mem->ptr );
 
 	// Open file
 	if (aof == ALLO)
@@ -367,7 +443,7 @@ static inline void output_data( t_memblk *mem, t_aof aof )
 	{
 		// Write DATA to file
 		//	- ID
-		put_nbr( fd, id );
+		put_nbr( fd, mem->id );
 		put_str( fd, " - ID\n" );
 		//	- SIZ
 		put_nbr( fd, mem->siz );
@@ -409,14 +485,14 @@ static inline void output_data( t_memblk *mem, t_aof aof )
 	{
 		ERR( "open summary [%s] file in output_data()", LOG_FILE );
 	}
-	dprintf( summ_fd, "%s : ID %-16ld - SIZE %-16ld - ADDR %#X | %s", ( aof == ALLO ) ? ( "ALLO" ) : ( "FREE" ), id, mem->siz, mem->ptr, loc );
+	dprintf( summ_fd, "%s : ID %-16ld - SIZE %-16ld - ADDR %#X | %s", ( aof == ALLO ) ? ( "ALLO" ) : ( "FREE" ), mem->id, mem->siz, mem->ptr, loc );
 	close( summ_fd );
 }
 
 //////////////////////////////////////////////////////////// srcs/wrap_allo_free.h
 static inline void *_WRAPPED_malloc( size_t size, size_t line, const char *func, const char *file )
 {
-	t_memblk	mem = ( t_memblk ){ NULL, size, ( t_location ) { line, func, file } };
+	t_memblk	mem = ( t_memblk ){ 0, NULL, size, ( t_location ) { line, func, file } };
 	void *ptr = NULL;
 
 	mem.ptr = malloc( size ); // Call real malloc
@@ -429,7 +505,7 @@ static inline void *_WRAPPED_malloc( size_t size, size_t line, const char *func,
 static inline void	_WRAPPED_free( void *ptr, int line, const char *func, const char *file )
 {
 	// code here
-	t_memblk	mem = ( t_memblk ){ ptr, 0, ( t_location ) { line, func, file } };
+	t_memblk	mem = ( t_memblk ){ 0, ptr, 0, ( t_location ) { line, func, file } };
 
 	output_data( &mem, FREE );
 
