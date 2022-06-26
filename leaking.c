@@ -1,8 +1,11 @@
 /*
-**	Testing main for wraloc
+**	Testing main for EZmem
 */
 
 #include "ezmem.h"
+
+#include <stdlib.h>
+#include <time.h>
 
 char		**tab_alloc( int x, int y )
 {
@@ -12,7 +15,7 @@ char		**tab_alloc( int x, int y )
 	if (!( tab = ( char ** ) malloc( ( y + 1 ) * sizeof( char * ) ) ))
 		return ( NULL );
 	i = 0;
-	while (i < x)
+	while (i < y)
 	{
 		if (!( tab[i] = ( char * ) malloc( x * sizeof( char ) ) ))
 			return ( NULL );
@@ -29,7 +32,11 @@ void		tab_free( char **tab )
 	i = 0;
 	while (tab && tab[i + 1])
 	{
-		free( tab[i] );
+		if (rand() % 2 == 0)
+		{
+			puts( "LOTTO" );
+			free( tab[i] );
+		}
 		tab[i] = NULL;
 		i++;
 	}
@@ -40,28 +47,13 @@ void		tab_free( char **tab )
 	}
 }
 
-void		f3( char ***tab )
-{
-	*tab = tab_alloc( 300, 300 );
-}
-
-void		f2( char ***tab )
-{
-	f3( tab );
-}
-
-void		f1( char ***tab )
-{
-	f2( tab );
-}
-
 int			main( void )
 {
 	char	**tab;
 
-	f1( &tab );
+	srand( time( 0 ) );
+	tab = tab_alloc( 300, 3 );
 	tab_free( tab );
-	free( NULL );
 
 	// while (1);
 	// exit( 1 );

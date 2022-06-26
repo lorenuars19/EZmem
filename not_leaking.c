@@ -1,8 +1,9 @@
 /*
-**	Testing main for wraloc
+**	Testing main for EZmem
 */
 
 #include "ezmem.h"
+
 #include <stdlib.h>
 
 char** tab_alloc( int x, int y )
@@ -13,7 +14,7 @@ char** tab_alloc( int x, int y )
 	if (!( tab = ( char** ) malloc( ( y + 1 ) * sizeof( char* ) ) ))
 		return ( NULL );
 	i = 0;
-	while (i < x)
+	while (i < y)
 	{
 		tab[i] = ( char* ) malloc( x * sizeof( char ) );
 		if (!( tab[i] ))
@@ -42,27 +43,11 @@ void		tab_free( char** tab )
 	}
 }
 
-void		f3( char*** tab )
-{
-	*tab = tab_alloc( 3, 3 );
-}
-
-void		f2( char*** tab )
-{
-	f3( tab );
-}
-
-void		f1( char*** tab )
-{
-	f2( tab );
-}
-
 int			main( void )
 {
 	char** tab;
 
-	f1( &tab );
+	tab = tab_alloc( 300, 30 );
 	tab_free( tab );
-	free( NULL );
 	return ( 0 );
 }
