@@ -24,10 +24,9 @@ dprintf(2, __VA_ARGS__ ); dprintf(2, " > \e[0m\n" );
 #define FAT_ERR(...) ERR(__VA_ARGS__); \
 dprintf(2, "\e[31;1m < EZMEM FATAL ERROR : EXIT >\e[0m\n" ); exit(1);
 
-#define FD( X )\
-dprintf( 1, "\n\e[33;1m < EZMEM %16s:%16d in %16s() : FD " #X " %d", __FILE__, __LINE__, __FUNCTION__, X ); \
-
-
+// #define FD( X )\
+// dprintf( 1, "\n\e[33;1m < EZMEM %16s:%16d in %16s() : FD " #X " %d", __FILE__, __LINE__, __FUNCTION__, X );
+#define FD( X ) ;
 
 // Define some internal constants
 #define MAIN_FOLDER "./.ezmem"
