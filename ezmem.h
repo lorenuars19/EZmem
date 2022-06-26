@@ -256,6 +256,9 @@ static inline void	constructor()
 static inline void quit( int sig )
 {
 	dprintf( 2, "\e[2K\e[0G\e[32;1m < EZMEM : Done creating memory report %s > \e[0m\n\n", REPORT_FILE );
+
+	system( "echo ; cat " REPORT_FILE );
+
 	kill( 0, sig );
 }
 
@@ -307,8 +310,6 @@ static inline void dump_leak( int fd, t_memblk *mem )
 		put_chr( fd, cast[i] );
 		i++;
 	}
-
-
 }
 
 
@@ -386,9 +387,6 @@ static inline int process_fname( char *s, t_mstat * mstat )
 	int report_fd = open( REPORT_FILE, O_CREAT | O_WRONLY | O_APPEND, 0700 );
 	dprintf( report_fd, "LEAK : ID %-16lld SIZ %-16lld ADDR %#llX\n", mem.id, mem.siz, ( uintptr_t ) mem.ptr );
 	close( report_fd );
-
-
-
 	return ( 0 );
 }
 
@@ -426,7 +424,7 @@ static inline void create_mem_report( int sig )
 	while (ent)
 	{
 		dprintf( 2, "\e[2K\e[0G\e[32;1m < EZMEM : Creating memory report %s >\e[0m", anim[( n_files / 8 ) % ANIM_FRAMES] );
-		usleep( 512 * 10 );
+		// usleep( 512 * 10 );
 		ent = readdir( ffd );
 		if (ent && process_fname( ent->d_name, &mstat ))
 		{
@@ -445,7 +443,6 @@ MEMORY STATS : \n\
 - alloc count        : % lld\n\
 - free count         : % lld\n", mstat.total_mem_use, mstat.total_mem_free, mstat.allo_cnt, mstat.free_cnt );
 	close( report_fd );
-	system( "echo ; cat " REPORT_FILE );
 
 	quit( sig );
 }

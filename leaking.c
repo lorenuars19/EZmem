@@ -64,7 +64,7 @@ int			main( void )
 	free( NULL );
 
 	// while (1);
-	exit( 1 );
+	// exit( 1 );
 
 	return ( 0 );
 }

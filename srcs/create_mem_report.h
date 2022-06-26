@@ -169,7 +169,7 @@ static inline void create_mem_report( int sig )
 	while (ent)
 	{
 		dprintf( 2, "\e[2K\e[0G\e[32;1m < EZMEM : Creating memory report %s >\e[0m", anim[( n_files / 8 ) % ANIM_FRAMES] );
-		usleep( 512 * 10 );
+		// usleep( 512 * 10 );
 		ent = readdir( ffd );
 		if (ent && process_fname( ent->d_name, &mstat ))
 		{
