@@ -257,7 +257,7 @@ static inline void quit( int sig )
 {
 	dprintf( 2, "\e[2K\e[0G\e[32;1m < EZMEM : Done creating memory report %s > \e[0m\n\n", REPORT_FILE );
 
-	system( "echo ; cat " REPORT_FILE );
+	system( "cat " REPORT_FILE );
 
 	kill( 0, sig );
 }
