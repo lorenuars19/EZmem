@@ -7,25 +7,25 @@
 #include <stdlib.h>
 #include <time.h>
 
-char		**tab_alloc( int x, int y )
+char** tab_alloc(size_t x, size_t y)
 {
-	char	**tab;
+	char** tab;
 	size_t	i;
 
-	if (!( tab = ( char ** ) malloc( ( y + 1 ) * sizeof( char * ) ) ))
-		return ( NULL );
+	if (!(tab = (char**)malloc((y + 1) * sizeof(char*))))
+		return (NULL);
 	i = 0;
 	while (i < y)
 	{
-		if (!( tab[i] = ( char * ) malloc( x * sizeof( char ) ) ))
-			return ( NULL );
+		if (!(tab[i] = (char*)malloc(x * sizeof(char))))
+			return (NULL);
 		i++;
 	}
 	tab[i] = NULL;
-	return ( tab );
+	return (tab);
 }
 
-void		tab_free( char **tab )
+void		tab_free(char** tab)
 {
 	size_t	i;
 
@@ -34,28 +34,28 @@ void		tab_free( char **tab )
 	{
 		if (rand() % 100 != 0)
 		{
-			free( tab[i] );
+			free(tab[i]);
 		}
 		tab[i] = NULL;
 		i++;
 	}
 	if (tab)
 	{
-		free( tab );
+		free(tab);
 		tab = NULL;
 	}
 }
 
-int			main( void )
+int			main(void)
 {
-	char	**tab;
+	char** tab;
 
-	srand( time( 0 ) );
-	tab = tab_alloc( 3, 300 );
-	tab_free( tab );
+	srand(time(0));
+	tab = tab_alloc(3, 300);
+	tab_free(tab);
 
 	// while (1);
 	// exit( 1 );
 
-	return ( 0 );
+	return (0);
 }

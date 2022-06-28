@@ -1,23 +1,22 @@
-static inline void *_WRAPPED_malloc( size_t size, size_t line, const char *func, const char *file )
+static inline void* _WRAPPED_malloc(size_t size, size_t line, const char* func, const char* file)
 {
-	t_memblk	mem = ( t_memblk ){ 0, NULL, size, ( t_location ) { line, func, file } };
-	void *ptr = NULL;
+	t_memblk	mem = (t_memblk){ 0, NULL, size, (t_location) { line, func, file } };
 
-	mem.ptr = malloc( size ); // Call real malloc
+	mem.ptr = malloc(size); // Call real malloc
 
-	output_data( &mem, ALLO );
+	output_data(&mem, ALLO);
 
-	return ( mem.ptr );
+	return (mem.ptr);
 }
 
-static inline void	_WRAPPED_free( void *ptr, int line, const char *func, const char *file )
+static inline void	_WRAPPED_free(void* ptr, int line, const char* func, const char* file)
 {
 	// code here
-	t_memblk	mem = ( t_memblk ){ 0, ptr, 0, ( t_location ) { line, func, file } };
+	t_memblk	mem = (t_memblk){ 0, ptr, 0, (t_location) { line, func, file } };
 
-	output_data( &mem, FREE );
+	output_data(&mem, FREE);
 
-	free( ptr );
+	free(ptr);
 }
 
 # define malloc(x) _WRAPPED_malloc(x, __LINE__, __FUNCTION__, __FILE__)

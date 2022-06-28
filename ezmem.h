@@ -38,7 +38,7 @@ dprintf(2, "\e[31;1m < EZMEM FATAL ERROR : EXIT >\e[0m\n" ); exit(1);
 #define README_FILE "./.ezmem/README.md"
 
 
-#define MEM_FMT "I_%ld__S_%ld__A_%#llX"
+#define MEM_FMT "I_%ld__S_%ld__A_%#lX"
 
 #define FNAME_MAXLEN 1024
 #define REPORT_BUFFER_MAXLEN 4096
@@ -49,14 +49,14 @@ dprintf(2, "\e[31;1m < EZMEM FATAL ERROR : EXIT >\e[0m\n" ); exit(1);
 typedef struct s_location
 {
 	size_t		line;
-	const char	*func;
-	const char	*file;
+	const char* func;
+	const char* file;
 }	t_location;
 
 typedef struct s_mem_blok
 {
 	size_t		id;
-	void		*ptr;
+	void* ptr;
 	size_t		siz;
 	t_location	loc;
 }	t_memblk;
@@ -92,30 +92,31 @@ void	put_str( int fd, char* str )
 }
 
 //////////////////////////////////////////////////////////// srcs/utils_file.h
-static inline void create_dir( char* path )
+static inline int create_dir(char* path)
 {
 	int ret = 0;
 	struct stat st = { 0 };
 
-	if (stat( path, &st ) == -1)
+	if (stat(path, &st) == -1)
 	{
-		ret = mkdir( path, 0700 );
+		ret = mkdir(path, 0700);
 	}
 	if (ret)
 	{
 		//TODO: error
 	}
+	return(0);
 }
 
-static inline int create_file( char* path, void ( *func )( int fd ) )
+static inline int create_file(char* path, void (*func)(int fd))
 {
 	int fd = 0;
 	struct stat st = { 0 };
 
-	if (stat( path, &st ) == -1)
+	if (stat(path, &st) == -1)
 	{
-		fd = open( path, O_CREAT | O_RDWR | O_CLOEXEC, 0700 );
-		FD( fd );
+		fd = open(path, O_CREAT | O_RDWR | O_CLOEXEC, 0700);
+		FD(fd);
 
 	}
 	if (fd < 1)
@@ -124,10 +125,10 @@ static inline int create_file( char* path, void ( *func )( int fd ) )
 	}
 	if (func)
 	{
-		func( fd );
+		func(fd);
 	}
-
-	close( fd );
+	close(fd);
+	return(0);
 }
 
 //////////////////////////////////////////////////////////// srcs/utils_nbr.h
@@ -168,137 +169,136 @@ static inline size_t put_nbr_base( int fd, ssize_t num, ssize_t base, char* b_ch
 }
 
 //////////////////////////////////////////////////////////// srcs/id_management.h
-static inline int get_curr_id( size_t* num_ptr )
+static inline int get_curr_id(size_t* num_ptr)
 {
 	size_t		number = 0;
-	char		input[ID_MAX_LEN] = { [0 ... ( ID_MAX_LEN - 1 )] = 0 }; // Use designated initializers to zero the array
+	char		input[ID_MAX_LEN] = { [0 ... (ID_MAX_LEN - 1)] = 0 }; // Use designated initializers to zero the array
 	int			fd = -1;
 	int			ret = 0;
 
-	fd = open( IDS_FILE, O_RDONLY | O_CLOEXEC );
-	FD( fd );
+	fd = open(IDS_FILE, O_RDONLY | O_CLOEXEC);
+	FD(fd);
 
 	if (fd < 0)
-		return ( 1 );
+		return (1);
 
-	ret = read( fd, &input, ID_MAX_LEN ); // read from file into buffer
+	ret = read(fd, &input, ID_MAX_LEN); // read from file into buffer
 	if (ret < 0)
-		return ( 1 );
+		return (1);
 
 	input[ret] = '\0'; // NULL terminate input buffer
 
-	number = strtoull( input, NULL, 10 );
+	number = strtoull(input, NULL, 10);
 	*num_ptr = number;
-	close( fd );
-	return( 0 );
+	close(fd);
+	return(0);
 }
 
-static inline int update_id( size_t curr_id )
+static inline int update_id(size_t curr_id)
 {
 	int			fd = -1;
-	int			ret = 0;
 
-	fd = open( IDS_FILE, O_RDWR | O_TRUNC, 0700 );
-	FD( fd );
+	fd = open(IDS_FILE, O_RDWR | O_TRUNC, 0700);
+	FD(fd);
 
 	if (fd < 0)
-		return ( 1 );
+		return (1);
 
-	put_nbr( fd, curr_id + 1 );
+	put_nbr(fd, curr_id + 1);
 
-	close( fd );
-	return( 0 );
+	close(fd);
+	return(0);
 }
 
 //////////////////////////////////////////////////////////// srcs/create_mem_report.h
-static inline void quit( int sig )
+static inline void quit(int sig)
 {
-	dprintf( 2, "\e[2K\e[0G\e[32;1m < EZMEM : Done creating memory report %s > \e[0m\n\n", REPORT_FILE );
+	dprintf(2, "\e[2K\e[0G\e[32;1m < EZMEM : Done creating memory report %s > \e[0m\n\n", REPORT_FILE);
 
-	system( "cat " REPORT_FILE );
+	system("cat " REPORT_FILE);
 
-	kill( 0, sig );
+	kill(0, sig);
 }
 
-static inline void dump_leak( int fd, t_memblk *mem )
+static inline void dump_leak(int fd, t_memblk* mem)
 {
 	size_t i = 0;
 
-	dprintf( fd, "\nLEAK DUMP : ID %ld SIZ %ld ADDR %#llX\n", mem->id, mem->siz, mem->ptr );
-	unsigned long long *cast = ( unsigned long long * ) mem->ptr;
+	dprintf(fd, "\nLEAK DUMP : ID %ld SIZ %ld ADDR %#lX\n", mem->id, mem->siz, (unsigned long)mem->ptr);
+	unsigned long long* cast = (unsigned long long*) mem->ptr;
 
-	dprintf( fd, "\nHEX :\n", mem->id, mem->siz, mem->ptr );
+	dprintf(fd, "\nHEX :\n");
 	i = 0;
 	while (i < mem->siz)
 	{
-		dprintf( fd, "%#16llX ", cast[i] );
+		dprintf(fd, "%#16llX ", cast[i]);
 		i++;
 	}
 
-	dprintf( fd, "\n\nDEC :\n", mem->id, mem->siz, mem->ptr );
+	dprintf(fd, "\n\nDEC :\n");
 	i = 0;
 	while (i < mem->siz)
 	{
-		dprintf( fd, "%16lld ", cast[i] );
+		dprintf(fd, "%16lld ", cast[i]);
 		i++;
 	}
 
-	dprintf( fd, "\n\nSTR RAW :\n", mem->id, mem->siz, mem->ptr );
+	dprintf(fd, "\n\nSTR RAW :\n");
 	i = 0;
 	while (i < mem->siz)
 	{
-		put_chr( fd, '\'' );
+		put_chr(fd, '\'');
 		if (cast[i] < ' ')
 		{
-			dprintf( fd, "\\%16lld ", cast[i] );
+			dprintf(fd, "\\%16lld ", cast[i]);
 		}
 		else
 		{
-			put_chr( fd, cast[i] );
+			put_chr(fd, cast[i]);
 		}
-		put_chr( fd, '\'' );
-		put_chr( fd, ' ' );
+		put_chr(fd, '\'');
+		put_chr(fd, ' ');
 		i++;
 	}
 
-	dprintf( fd, "\n\nSTR :\n", mem->id, mem->siz, mem->ptr );
+	dprintf(fd, "\n\nSTR :\n");
 	i = 0;
 	while (i < mem->siz)
 	{
-		put_chr( fd, cast[i] );
+		put_chr(fd, cast[i]);
 		i++;
 	}
 }
 
 
-static inline int process_fname( char *s, t_mstat * mstat )
+static inline int process_fname(char* s, t_mstat* mstat)
 {
 	size_t		i = 0;
 	size_t		slen = 0;
 	char		freed = 0;
-	t_memblk	mem = ( t_memblk ){ 0, NULL, 0, ( t_location ) { 0, NULL, NULL } };
+	t_memblk	mem = (t_memblk){ 0, NULL, 0, (t_location) { 0, NULL, NULL } };
 
-	if (s && s[0] == '.' || !s)
+	if ((s && s[0] == '.') || !s)
 	{
-		return ( 0 );
+		return (0);
 	}
 
-	slen = str_len( s );
+	slen = str_len(s);
 	if (s[slen - 1] == 'R')
 	{
 		freed = 1;
 	}
 	i = 0;
 	// Parse ID
-	mem.id = strtoull( s + 2, NULL, 10 );
+	mem.id = strtoull(s + 2, NULL, 10);
 	// Parse SIZ
 	while (s && s[i] && s[i] != 'S')
 		i++;
-	mem.siz = strtoull( s + i + 2, NULL, 10 );
+	mem.siz = strtoull(s + i + 2, NULL, 10);
 	// Parse ADDR
 	while (s && s[i] && s[i] != 'A')
 		i++;
-	mem.ptr = ( void * ) strtoull( s + i + 2, NULL, 16 );
+	mem.ptr = (void*)strtoull(s + i + 2, NULL, 16);
 
 	// printf( " < process_fname : mem id %ld siz %ld, ptr %p> \n", mem.id, mem.siz, mem.ptr );
 
@@ -309,110 +309,110 @@ static inline int process_fname( char *s, t_mstat * mstat )
 	{
 		mstat->total_mem_free += mem.siz;
 		mstat->free_cnt++;
-		return ( 0 );
+		return (0);
 	}
 
-	char fname[FNAME_MAXLEN] = { [0 ... ( FNAME_MAXLEN - 1 )] = 0 };
-	snprintf( fname, FNAME_MAXLEN, MEM_FOLDER MEM_FMT, mem.id, mem.siz, ( uintptr_t ) mem.ptr );
-	int fd = open( fname, O_RDONLY );
-	FD( fd );
+	char fname[FNAME_MAXLEN] = { [0 ... (FNAME_MAXLEN - 1)] = 0 };
+	snprintf(fname, FNAME_MAXLEN, MEM_FOLDER MEM_FMT, mem.id, mem.siz, (uintptr_t)mem.ptr);
+	int fd = open(fname, O_RDONLY);
+	FD(fd);
 
 	if (fd < 0)
 	{
-		ERR( "open : invalid fd %d", fd );
+		ERR("open : invalid fd %d", fd);
 	}
 
-	char buffer[REPORT_BUFFER_MAXLEN] = { [0 ... ( REPORT_BUFFER_MAXLEN - 1 )] = 0 };
+	char buffer[REPORT_BUFFER_MAXLEN] = { [0 ... (REPORT_BUFFER_MAXLEN - 1)] = 0 };
 
 	int ret = 1;
-	ret = read( fd, buffer, REPORT_BUFFER_MAXLEN );
+	ret = read(fd, buffer, REPORT_BUFFER_MAXLEN);
 	if (ret < 0)
 	{
-		ERR( "read: ret %d", ret );
+		ERR("read: ret %d", ret);
 	}
 	buffer[ret] = '\0';
-	close( fd );
+	close(fd);
 
-	char leak_fname[FNAME_MAXLEN] = { [0 ... ( FNAME_MAXLEN - 1 )] = 0 };
-	snprintf( leak_fname, FNAME_MAXLEN, LEAKS_FOLDER "ID_%ld__SIZ_%ld__ADDR_%#llX_LEAKED", mem.id, mem.siz, ( uintptr_t ) mem.ptr );
-	int leak_fd = open( leak_fname, O_CREAT | O_WRONLY | O_TRUNC, 0700 );
-	FD( leak_fd );
+	char leak_fname[FNAME_MAXLEN] = { [0 ... (FNAME_MAXLEN - 1)] = 0 };
+	snprintf(leak_fname, FNAME_MAXLEN, LEAKS_FOLDER "ID_%ld__SIZ_%ld__ADDR_%#lX_LEAKED", mem.id, mem.siz, (uintptr_t)mem.ptr);
+	int leak_fd = open(leak_fname, O_CREAT | O_WRONLY | O_TRUNC, 0700);
+	FD(leak_fd);
 
 	if (leak_fd < 0)
 	{
-		ERR( "open : invalid leak_fd %d", leak_fd );
+		ERR("open : invalid leak_fd %d", leak_fd);
 	}
-	put_str( leak_fd, buffer );
-	dump_leak( leak_fd, &mem );
-	close( leak_fd );
+	put_str(leak_fd, buffer);
+	dump_leak(leak_fd, &mem);
+	close(leak_fd);
 
-	int report_fd = open( REPORT_FILE, O_CREAT | O_WRONLY | O_APPEND, 0700 );
-	FD( report_fd );
+	int report_fd = open(REPORT_FILE, O_CREAT | O_WRONLY | O_APPEND, 0700);
+	FD(report_fd);
 
-	dprintf( report_fd, "LEAK : ID %-16lld SIZ %-16lld ADDR %#llX\n", mem.id, mem.siz, ( uintptr_t ) mem.ptr );
-	close( report_fd );
-	return ( 0 );
+	dprintf(report_fd, "LEAK : ID %-16ld SIZ %-16ld ADDR %#lX\n", mem.id, mem.siz, (uintptr_t)mem.ptr);
+	close(report_fd);
+	return (0);
 }
 
 #define ANIM_MAXLEN 3
 #define ANIM_FRAMES 4
 
-static inline void create_mem_report( int sig )
+static inline void create_mem_report(int sig)
 {
-	t_mstat mstat = ( t_mstat ){ 0, 0, 0, 0 };
+	t_mstat mstat = (t_mstat){ 0, 0, 0, 0 };
 	size_t n_files;
 	static char anim[ANIM_FRAMES][ANIM_MAXLEN] = { "|", "/", "-" , "\\" };
 	struct stat st = { 0 };
 
-	signal( sig, SIG_DFL );
-	if (stat( REPORT_FILE, &st ) != -1)
+	signal(sig, SIG_DFL);
+	if (stat(REPORT_FILE, &st) != -1)
 	{
-		ERR( "%s already exists", REPORT_FILE );
+		ERR("%s already exists", REPORT_FILE);
 	}
 
-	DIR *ffd;
-	ffd = opendir( MEM_FOLDER );
+	DIR* ffd;
+	ffd = opendir(MEM_FOLDER);
 	if (ffd == NULL)
 	{
-		ERR( "opendir : cannot open folder %s | ffd : %p", MEM_FOLDER, ffd );
-		quit( sig );
+		ERR("opendir : cannot open folder %s | ffd : %p", MEM_FOLDER, ffd);
+		quit(sig);
 	}
-	struct dirent *ent = ( struct dirent* ) 1;
+	struct dirent* ent = (struct dirent*)1;
 	n_files = 0;
-	dprintf( 2, "\n\e[32;1m < EZMEM : Creating memory report %s> \e[0m", anim[0] );
-	int init_report_fd = open( REPORT_FILE, O_CREAT | O_WRONLY | O_APPEND, 0700 );
-	FD( init_report_fd );
+	dprintf(2, "\n\e[32;1m < EZMEM : Creating memory report %s> \e[0m", anim[0]);
+	int init_report_fd = open(REPORT_FILE, O_CREAT | O_WRONLY | O_APPEND, 0700);
+	FD(init_report_fd);
 
-	dprintf( init_report_fd, "\
+	dprintf(init_report_fd, "\
 ================================================================================\n\
-=== LEAKS REPORT\n\n" );
-	close( init_report_fd );
+=== LEAKS REPORT\n\n");
+	close(init_report_fd);
 	while (ent)
 	{
-		dprintf( 2, "\e[2K\e[0G\e[32;1m < EZMEM : Creating memory report %s >\e[0m", anim[( n_files ) % ANIM_FRAMES] );
+		dprintf(2, "\e[2K\e[0G\e[32;1m < EZMEM : Creating memory report %s >\e[0m", anim[(n_files) % ANIM_FRAMES]);
 		// usleep( 512 * 10 );
-		ent = readdir( ffd );
-		if (ent && process_fname( ent->d_name, &mstat ))
+		ent = readdir(ffd);
+		if (ent && process_fname(ent->d_name, &mstat))
 		{
-			ERR( "process_fname : non-zero return | ent %p", ent );
+			ERR("process_fname : non-zero return | ent %p", ent);
 		}
 		n_files++;
 	}
-	closedir( ffd );
+	closedir(ffd);
 
-	int report_fd = open( REPORT_FILE, O_CREAT | O_WRONLY | O_APPEND, 0700 );
-	FD( report_fd );
+	int report_fd = open(REPORT_FILE, O_CREAT | O_WRONLY | O_APPEND, 0700);
+	FD(report_fd);
 
-	dprintf( report_fd, "\n\
+	dprintf(report_fd, "\n\
 ================================================================================\n\
 === MEMORY STATS\n\n\
-Total memory used  : %lld\n\
-Total memory freed : %lld\n\
-Alloc count        : %lld\n\
-Free count         : %lld\n\n", mstat.total_mem_use, mstat.total_mem_free, mstat.allo_cnt, mstat.free_cnt );
-	close( report_fd );
+Total memory used  : %ld\n\
+Total memory freed : %ld\n\
+Alloc count        : %ld\n\
+Free count         : %ld\n\n", mstat.total_mem_use, mstat.total_mem_free, mstat.allo_cnt, mstat.free_cnt);
+	close(report_fd);
 
-	quit( sig );
+	quit(sig);
 }
 
 //////////////////////////////////////////////////////////// srcs/output_data.h
@@ -422,86 +422,86 @@ typedef enum e_allo_or_free
 	FREE
 }	t_aof;
 
-static inline int parse_id_siz( t_memblk *mem, char *s )
+static inline int parse_id_siz(t_memblk* mem, char* s)
 {
-	const uintptr_t mem_ptr = ( uintptr_t ) mem->ptr;
+	const uintptr_t mem_ptr = (uintptr_t)mem->ptr;
 	uintptr_t ptr = 0;
 	size_t i = 0;
 
-	if (s && s[0] == '.' || !s)
+	if ((s && s[0] == '.') || !s)
 	{
-		return ( 0 );
+		return (0);
 	}
 	while (s && s[i] && s[i] != 'A')
 		i++;
 
-	ptr = strtoull( s + i + 2, NULL, 16 );
+	ptr = strtoull(s + i + 2, NULL, 16);
 	if (ptr == mem_ptr)
 	{
 		i = 0;
 		// Parse ID
-		mem->id = strtoull( s + 2, NULL, 10 );
+		mem->id = strtoull(s + 2, NULL, 10);
 		// Parse SIZ
 		while (s && s[i] && s[i] != 'S')
 			i++;
-		mem->siz = strtoull( s + i + 2, NULL, 10 );
+		mem->siz = strtoull(s + i + 2, NULL, 10);
 
-		return( 1 );
+		return(1);
 	}
-	return ( 0 );
+	return (0);
 }
 
-static inline int detect_id( t_memblk *mem, t_aof aof )
+static inline int detect_id(t_memblk* mem, t_aof aof)
 {
 	// ID management
 	//	- GET ID
 	if (aof == ALLO)
 	{
-		if (get_curr_id( &( mem->id ) ))
+		if (get_curr_id(&(mem->id)))
 		{
-			ERR( "get_curr_id: *id %p id %d", &( mem->id ), mem->id );
-			return ( 1 );
+			ERR("get_curr_id: *id %p id %ld", &(mem->id), mem->id);
+			return (1);
 		}
 		//	- INCREMENT ID
-		if (update_id( mem->id ))
+		if (update_id(mem->id))
 		{
-			ERR( "update_id: *id %p id %d", &( mem->id ), mem->id );
-			return ( 2 );
+			ERR("update_id: *id %p id %ld", &(mem->id), mem->id);
+			return (2);
 		}
 	}
 	else if (aof == FREE)
 	{
 		// read dir and match mem->ptr and get ID and SIZ of mem->ptr
-		DIR *ffd;
-		ffd = opendir( MEM_FOLDER );
+		DIR* ffd;
+		ffd = opendir(MEM_FOLDER);
 		if (ffd == NULL)
 		{
-			ERR( "opendir: cannot open folder %s | ffd : %p", MEM_FOLDER, ffd );
-			return ( 3 );
+			ERR("opendir: cannot open folder %s | ffd : %p", MEM_FOLDER, ffd);
+			return (3);
 		}
-		struct dirent *ent = ( struct dirent* ) 1;
+		struct dirent* ent = (struct dirent*)1;
 		while (ent)
 		{
-			ent = readdir( ffd );
-			if (ent && parse_id_siz( mem, ent->d_name ))
+			ent = readdir(ffd);
+			if (ent && parse_id_siz(mem, ent->d_name))
 			{
 				break;
 			}
 		}
-		closedir( ffd );
+		closedir(ffd);
 	}
-	return ( 0 );
+	return (0);
 }
 
-static inline void output_data( t_memblk *mem, t_aof aof )
+static inline void output_data(t_memblk* mem, t_aof aof)
 {
 	int		fd = -1;
 	int		ret = 0;
 
-	ret = detect_id( mem, aof );
+	ret = detect_id(mem, aof);
 	if (ret)
 	{
-		ERR( "detect_id : RET %d", ret )
+		ERR("detect_id : RET %d", ret)
 	}
 	if (mem->siz == 0) // size of ZERO = UNKNOWN = ignore
 	{
@@ -509,74 +509,74 @@ static inline void output_data( t_memblk *mem, t_aof aof )
 	}
 
 	// Generate filename
-	char fname[FNAME_MAXLEN] = { [0 ... ( FNAME_MAXLEN - 1 )] = 0 };
-	snprintf( fname, FNAME_MAXLEN, MEM_FOLDER MEM_FMT, mem->id, mem->siz, ( uintptr_t ) mem->ptr );
+	char fname[FNAME_MAXLEN] = { [0 ... (FNAME_MAXLEN - 1)] = 0 };
+	snprintf(fname, FNAME_MAXLEN, MEM_FOLDER MEM_FMT, mem->id, mem->siz, (uintptr_t)mem->ptr);
 
 	// Open file
 	if (aof == ALLO)
 	{
-		fd = open( fname, O_CREAT | O_WRONLY | O_TRUNC, 0700 );
+		fd = open(fname, O_CREAT | O_WRONLY | O_TRUNC, 0700);
 	}
 	else if (aof == FREE)
 	{
-		fd = open( fname, O_WRONLY | O_APPEND );
+		fd = open(fname, O_WRONLY | O_APPEND);
 	}
-	FD( fd );
+	FD(fd);
 
 	if (fd < 0)
 	{
-		ERR( "open memblk [%s] file in output_data()", fname );
+		ERR("open memblk [%s] file in output_data()", fname);
 	}
 	if (aof == ALLO)
 	{
 		// Write DATA to file
 		//	- ID
-		put_nbr( fd, mem->id );
-		put_str( fd, " - ID\n" );
+		put_nbr(fd, mem->id);
+		put_str(fd, " - ID\n");
 		//	- SIZ
-		put_nbr( fd, mem->siz );
-		put_str( fd, " - SIZE\n" );
+		put_nbr(fd, mem->siz);
+		put_str(fd, " - SIZE\n");
 		//	- ADDR
-		put_str( fd, "0x" );
-		put_nbr_base( fd, ( unsigned long long ) mem->ptr, 16, "0123456789ABCDEF" );
-		put_str( fd, " - ADDR\n" );
+		put_str(fd, "0x");
+		put_nbr_base(fd, (unsigned long long) mem->ptr, 16, "0123456789ABCDEF");
+		put_str(fd, " - ADDR\n");
 		// one empty line
-		put_str( fd, "\n" );
+		put_str(fd, "\n");
 	}
 	//	- LOCATION
 	char loc[LOC_MAXLEN];
 	if (aof == ALLO)
 	{
-		snprintf( loc, LOC_MAXLEN, "ALLO : %s:%ld in %s()\n", mem->loc.file, mem->loc.line, mem->loc.func );
+		snprintf(loc, LOC_MAXLEN, "ALLO : %s:%ld in %s()\n", mem->loc.file, mem->loc.line, mem->loc.func);
 	}
 	else if (aof == FREE)
 	{
-		snprintf( loc, LOC_MAXLEN, "FREE : %s:%ld in %s()\n", mem->loc.file, mem->loc.line, mem->loc.func );
+		snprintf(loc, LOC_MAXLEN, "FREE : %s:%ld in %s()\n", mem->loc.file, mem->loc.line, mem->loc.func);
 	}
-	put_str( fd, loc );
-	close( fd );
+	put_str(fd, loc);
+	close(fd);
 
 	if (aof == FREE)
 	{
-		char frename[FNAME_MAXLEN] = { [0 ... ( FNAME_MAXLEN - 1 )] = 0 };
-		snprintf( frename, FNAME_MAXLEN, "%s__R", fname );
-		if (rename( fname, frename ))
+		char frename[FNAME_MAXLEN] = { [0 ... (FNAME_MAXLEN - 1)] = 0 };
+		snprintf(frename, FNAME_MAXLEN, "%s__R", fname);
+		if (rename(fname, frename))
 		{
-			ERR( "rename memblk [%s] >> [%s] file in output_data()", fname, frename );
+			ERR("rename memblk [%s] >> [%s] file in output_data()", fname, frename);
 		}
 	}
 
 	int summ_fd;
 
-	summ_fd = open( LOG_FILE, O_WRONLY | O_APPEND );
-	FD( fd );
+	summ_fd = open(LOG_FILE, O_WRONLY | O_APPEND);
+	FD(fd);
 
 	if (summ_fd < 0)
 	{
-		ERR( "open summary [%s] file in output_data()", LOG_FILE );
+		ERR("open summary [%s] file in output_data()", LOG_FILE);
 	}
-	dprintf( summ_fd, "%s : ID %-16ld - SIZE %-16ld - ADDR %#X | %s", ( aof == ALLO ) ? ( "ALLO" ) : ( "FREE" ), mem->id, mem->siz, mem->ptr, loc );
-	close( summ_fd );
+	dprintf(summ_fd, "%s : ID %-16ld - SIZE %-16ld - ADDR %#lX | %s", (aof == ALLO) ? ("ALLO") : ("FREE"), mem->id, mem->siz, (unsigned long)mem->ptr, loc);
+	close(summ_fd);
 }
 
 //////////////////////////////////////////////////////////// srcs/destructor.h
@@ -639,26 +639,25 @@ static inline void	constructor()
 }
 
 //////////////////////////////////////////////////////////// srcs/wrap_allo_free.h
-static inline void *_WRAPPED_malloc( size_t size, size_t line, const char *func, const char *file )
+static inline void* _WRAPPED_malloc(size_t size, size_t line, const char* func, const char* file)
 {
-	t_memblk	mem = ( t_memblk ){ 0, NULL, size, ( t_location ) { line, func, file } };
-	void *ptr = NULL;
+	t_memblk	mem = (t_memblk){ 0, NULL, size, (t_location) { line, func, file } };
 
-	mem.ptr = malloc( size ); // Call real malloc
+	mem.ptr = malloc(size); // Call real malloc
 
-	output_data( &mem, ALLO );
+	output_data(&mem, ALLO);
 
-	return ( mem.ptr );
+	return (mem.ptr);
 }
 
-static inline void	_WRAPPED_free( void *ptr, int line, const char *func, const char *file )
+static inline void	_WRAPPED_free(void* ptr, int line, const char* func, const char* file)
 {
 	// code here
-	t_memblk	mem = ( t_memblk ){ 0, ptr, 0, ( t_location ) { line, func, file } };
+	t_memblk	mem = (t_memblk){ 0, ptr, 0, (t_location) { line, func, file } };
 
-	output_data( &mem, FREE );
+	output_data(&mem, FREE);
 
-	free( ptr );
+	free(ptr);
 }
 
 # define malloc(x) _WRAPPED_malloc(x, __LINE__, __FUNCTION__, __FILE__)

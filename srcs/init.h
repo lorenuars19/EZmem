@@ -34,7 +34,7 @@ dprintf(2, "\e[31;1m < EZMEM FATAL ERROR : EXIT >\e[0m\n" ); exit(1);
 #define README_FILE "./.ezmem/README.md"
 
 
-#define MEM_FMT "I_%ld__S_%ld__A_%#llX"
+#define MEM_FMT "I_%ld__S_%ld__A_%#lX"
 
 #define FNAME_MAXLEN 1024
 #define REPORT_BUFFER_MAXLEN 4096
@@ -45,14 +45,14 @@ dprintf(2, "\e[31;1m < EZMEM FATAL ERROR : EXIT >\e[0m\n" ); exit(1);
 typedef struct s_location
 {
 	size_t		line;
-	const char	*func;
-	const char	*file;
+	const char* func;
+	const char* file;
 }	t_location;
 
 typedef struct s_mem_blok
 {
 	size_t		id;
-	void		*ptr;
+	void* ptr;
 	size_t		siz;
 	t_location	loc;
 }	t_memblk;
