@@ -6,7 +6,7 @@
 
 #include <stdlib.h>
 
-char** tab_alloc( int x, int y )
+char** tab_alloc( size_t x, size_t y )
 {
 	char** tab;
 	size_t	i;

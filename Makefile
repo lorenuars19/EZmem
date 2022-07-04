@@ -46,7 +46,7 @@ $(TARGET) :
 
 
 test : all
-	gcc -g3 not_leaking.c && ./a.out
+	gcc -g3 -Wall -Wextra -Werror not_leaking.c && ./a.out
 
 test_lk : all
-	gcc -g3 leaking.c && ./a.out
+	gcc -g3 -Wall -Wextra -Werror leaking.c && ./a.out

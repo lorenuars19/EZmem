@@ -21,8 +21,6 @@ static inline void writ_init_id( int fd )
 	put_str( fd, "0" );
 }
 
-static inline int get_memid( long long* num_ptr );
-
 static inline void create_mem_report( int sig );
 
 static inline void	constructor()
